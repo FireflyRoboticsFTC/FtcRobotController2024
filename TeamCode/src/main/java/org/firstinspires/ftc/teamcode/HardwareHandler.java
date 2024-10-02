@@ -84,7 +84,7 @@ public class HardwareHandler {
                 )
         );
         imu.initialize(myIMUparameters);
-        robotOrientation = imu.getRobotYawPitchRollAngles();
+
 
 
     }
@@ -122,6 +122,8 @@ public class HardwareHandler {
 
 
     public double[] getIMUAngles() {
+        robotOrientation = imu.getRobotYawPitchRollAngles();
+
         double Yaw = robotOrientation.getYaw(AngleUnit.DEGREES);
         double Pitch = robotOrientation.getPitch(AngleUnit.DEGREES);
         double Roll = robotOrientation.getRoll(AngleUnit.DEGREES);
@@ -130,5 +132,80 @@ public class HardwareHandler {
         return values;
 
     }
+
+    public double getAverageEncoderPosition() {
+        double lf = leftFront.getCurrentPosition();
+        double lr = leftRear.getCurrentPosition();
+        double rf = rightFront.getCurrentPosition();
+        double rr = rightRear.getCurrentPosition();
+
+        return (lf + lr + rf + rr) / 4.0;
+    }
+
+    public void moveFourWheel(double power) {
+        leftFront.setPower(power);
+        leftRear.setPower(power);
+        rightFront.setPower(power);
+        rightRear.setPower(power);
+    }
+
+    public void strafeFourWheel(double power, boolean direction) {
+        if (direction) {
+            leftFront.setPower(-power);
+            leftRear.setPower(power*0.5);
+            rightFront.setPower(power);
+            rightRear.setPower(-power*0.5);
+        }
+        else {
+            leftFront.setPower(power);
+            leftRear.setPower(-power*0.5);
+            rightFront.setPower(power);
+            rightRear.setPower(-power*0.5 );
+        }
+
+
+    }
+
+    public void stopMotors() {
+        moveWithPower(0, 0, 0, 0);  // Stop movement
+    }
+
+
+    public void rotateToAngle(double targetAngle, double power) {
+        double[] imuAngles = getIMUAngles();
+        double currentYaw = imuAngles[0];
+        double tolerance = 1.0;
+        double direction = targetAngle > currentYaw ? 1 : -1;
+        while (Math.abs(currentYaw - targetAngle) > tolerance) {
+            double error = targetAngle - currentYaw;
+            double turnPower = direction * power * (error / 180.0);
+            moveWithPower(0, turnPower, 0, Math.abs(turnPower));
+            imuAngles = getIMUAngles();
+            currentYaw = imuAngles[0];
+        }
+
+        stopMotors();
+    }
+
+    public void moveForwardWithHeading(double power, double distance, double desiredHeading) {
+        double[] imuAngles;
+        double currentYaw;
+        double correction;
+        double error;
+        double initialEncoderPosition = getAverageEncoderPosition();
+        double targetPosition = initialEncoderPosition + distance;
+
+        while (getAverageEncoderPosition() < targetPosition) {
+            imuAngles = getIMUAngles();
+            currentYaw = imuAngles[0];
+            error = desiredHeading - currentYaw;
+            correction = error * 0.01;
+            moveWithPower(1, correction, 0, power);
+        }
+
+        stopMotors();
+    }
+
+
 
 }

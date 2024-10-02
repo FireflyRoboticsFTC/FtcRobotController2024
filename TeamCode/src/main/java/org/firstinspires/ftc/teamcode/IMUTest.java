@@ -24,7 +24,9 @@ public class IMUTest extends LinearOpMode {
             double[] list = hardwareHandler.getIMUAngles();
 
 
-            telemetry.addData("IMU Yaw Pitch Roll", list[0]);
+            telemetry.addData("IMU Yaw", list[0]);
+            telemetry.addData("IMU Pitch", list[1]);
+            telemetry.addData("IMU Roll", list[2]);
             telemetry.update();
         }
 
