@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.BHI260IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -17,6 +19,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.imu.SimpsonIntegrator;
 
+//tape measuere aiming, extension continous, two intake servos
 
 import java.util.HashMap;
 
@@ -46,6 +49,14 @@ public class HardwareHandler {
 
     private final DcMotor linearSlide;
 
+    private final CRServo leftIntake;
+
+    private final CRServo rightIntake;
+
+    private final Servo tapeMeasureAim;
+
+    private final CRServo tapeMeasure;
+
 
 
 
@@ -60,8 +71,11 @@ public class HardwareHandler {
         linearSlide = juyoungHardwareMap.dcMotor.get("linearSlide");
         linearLiftLeft = juyoungHardwareMap.dcMotor.get("linearLeft");
         linearLiftRight = juyoungHardwareMap.dcMotor.get("linearRight");
-        leftServoSlide = juyoungHardwareMap.crservo.get("servosLeft");
-        rightServoSlide = juyoungHardwareMap.crservo.get("servosRight");
+
+        leftIntake = juyoungHardwareMap.crservo.get("leftIntake");
+        rightIntake = juyoungHardwareMap.crservo.get("rightIntake");
+        tapeMeasureAim = juyoungHardwareMap.servo.get("tapeMeasureAim");
+        tapeMeasure = juyoungHardwareMap.crservo.get("tapeMeaure");
 
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -263,6 +277,20 @@ public class HardwareHandler {
 
     boolean buttonPressedY = false;
     ElapsedTime runtimeB = new ElapsedTime();
+
+    public void intakeSystem(double a) {
+            leftIntake.setPower(a);
+            rightIntake.setPower(-a);
+    }
+
+    public void measureAngle(double angle) {
+            tapeMeasureAim.setPosition(angle);
+    }
+
+    public void launchMeasure(double speed){
+            tapeMeasure.setPower(speed);
+    }
+
 
     public void toggleLift(boolean y, double power) {
         // Check if the button is pressed
