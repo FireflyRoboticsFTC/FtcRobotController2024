@@ -12,7 +12,7 @@ public class IMUTest extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialize the HardwareHandler
-        hardwareHandler = new HardwareHandler(hardwareMap);
+        hardwareHandler = new HardwareHandler(hardwareMap, telemetry);
 
         // Wait for the start button to be pressed
         telemetry.addData("Status", "Initializing IMU...");

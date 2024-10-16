@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
-
+import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -26,7 +26,10 @@ public class HardwareHandler {
     private final DcMotor leftRear;
     private final DcMotor rightFront;
     private final DcMotor rightRear;
+    private final DcMotor linearLiftLeft;
+    private final DcMotor linearLiftRight;
     public static double VLF = 1, VRF = 1, VLR = 1, VRR = 1;
+    private Telemetry telemetry;
 
     //private BNO055IMU imu;  // IMU sensor object
     private Orientation angles;
@@ -41,9 +44,12 @@ public class HardwareHandler {
 
     private YawPitchRollAngles robotOrientation;
 
+    private final DcMotor linearSlide;
 
 
-    public HardwareHandler(HardwareMap juyoungHardwareMap) {
+
+
+    public HardwareHandler(HardwareMap juyoungHardwareMap, Telemetry telemetry) {
 
         this.juyoungHardwareMap = juyoungHardwareMap;
 
@@ -51,9 +57,19 @@ public class HardwareHandler {
         leftRear = juyoungHardwareMap.dcMotor.get("leftRear");
         rightFront = juyoungHardwareMap.dcMotor.get("rightFront");
         rightRear = juyoungHardwareMap.dcMotor.get("rightRear");
+        linearSlide = juyoungHardwareMap.dcMotor.get("linearSlide");
+        linearLiftLeft = juyoungHardwareMap.dcMotor.get("linearLeft");
+        linearLiftRight = juyoungHardwareMap.dcMotor.get("linearRight");
+        leftServoSlide = juyoungHardwareMap.crservo.get("servosLeft");
+        rightServoSlide = juyoungHardwareMap.crservo.get("servosRight");
 
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -85,7 +101,7 @@ public class HardwareHandler {
         );
         imu.initialize(myIMUparameters);
 
-
+        this.telemetry = telemetry;
 
     }
 
@@ -142,6 +158,15 @@ public class HardwareHandler {
         return (lf + lr + rf + rr) / 4.0;
     }
 
+    public void telemetryEncoderPosition() {
+        telemetry.addData("leftFront: ", leftFront.getCurrentPosition());
+        telemetry.addData("leftRear: ", leftRear.getCurrentPosition());
+        telemetry.addData("rightFront: ", rightFront.getCurrentPosition());
+        telemetry.addData("rightRear: ", rightRear.getCurrentPosition());
+        telemetry.addData("Average: ", getAverageEncoderPosition());
+        telemetry.update();
+    }
+
     public void moveFourWheel(double power) {
         leftFront.setPower(power);
         leftRear.setPower(power);
@@ -182,6 +207,7 @@ public class HardwareHandler {
             moveWithPower(0, turnPower, 0, Math.abs(turnPower));
             imuAngles = getIMUAngles();
             currentYaw = imuAngles[0];
+
         }
 
         stopMotors();
@@ -200,11 +226,69 @@ public class HardwareHandler {
             currentYaw = imuAngles[0];
             error = desiredHeading - currentYaw;
             correction = error * 0.01;
-            moveWithPower(1, correction, 0, power);
+            moveWithPower(power, correction, 0, power);
+            telemetry.addData("Encoder Position and current yaw","current position " + getAverageEncoderPosition() + "current angle " + currentYaw );
+            telemetry.update();
         }
 
         stopMotors();
     }
+
+
+    boolean buttonPressed = false;
+    ElapsedTime runtime = new ElapsedTime();
+
+    public void toggleSlide(boolean a, double power) {
+        // Check if the button is pressed
+        boolean isButtonPressed = a; // Change "a" to the desired button
+        double rightPowerModifer = 1;
+        if (power > 0)
+            rightPowerModifer = 1;
+        // Check if the button state has changed
+        if (isButtonPressed && !buttonPressed) {
+
+            linearSlide.setPower(power*rightPowerModifer);
+            runtime.reset();
+
+        } else if (!isButtonPressed && buttonPressed) {
+
+            linearSlide.setPower(0.0);
+
+        }
+
+        // Update the button state
+        buttonPressed = isButtonPressed;
+
+    }
+
+    boolean buttonPressedY = false;
+    ElapsedTime runtimeB = new ElapsedTime();
+
+    public void toggleLift(boolean y, double power) {
+        // Check if the button is pressed
+        boolean isButtonPressedY = y; // Change "a" to the desired button
+        double powerModifer = 1;
+        if (power > 0)
+            powerModifer = 1;
+        // Check if the button state has changed
+        if (isButtonPressedY && !buttonPressedY) {
+
+            linearLiftLeft.setPower(power*powerModifer);
+            linearLiftRight.setPower(power*powerModifer);
+            runtimeB.reset();
+
+        } else if (!isButtonPressedY && buttonPressedY) {
+
+            linearLiftRight.setPower(0.0);
+            linearLiftLeft.setPower(0.0);
+
+        }
+
+        // Update the button state
+        buttonPressedY = isButtonPressedY;
+
+    }
+
 
 
 

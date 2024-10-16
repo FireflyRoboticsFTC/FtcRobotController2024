@@ -9,14 +9,14 @@ public class TestAuto extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        HardwareHandler hardware = new HardwareHandler(hardwareMap);
+        HardwareHandler hardware = new HardwareHandler(hardwareMap, telemetry);
 
         waitForStart();
 
         if (opModeIsActive()) {
             telemetry.addData("Step", "Moving forward with heading 0 degrees");
             telemetry.update();
-            hardware.moveForwardWithHeading(0.25, 1000, 0);
+            hardware.moveForwardWithHeading(0.15, 100, 0);
             double position = hardware.getAverageEncoderPosition();
             double[] imuAngles = hardware.getIMUAngles();
             double currentYaw = imuAngles[0];
