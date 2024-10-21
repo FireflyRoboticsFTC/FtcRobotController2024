@@ -10,9 +10,9 @@ public class program extends OpMode {
     private boolean aPrevState = false;
     private boolean intakeIn = false;
     private boolean intakeOut = false;
-    private boolean xPrevState = false;
+    private boolean axPrevState = false;
     private boolean measureOut = false;
-    private boolean yPrevState = false;
+    private boolean bPrevState = false;
     private boolean measureGoing = false;
     Gamepad gamePad1;
 
@@ -25,10 +25,20 @@ public class program extends OpMode {
     public void loop(){
         boolean y = gamepad1.y;
         boolean x = gamepad1.x;
-        boolean gpd2bCurrState = gamepad2.b;
-        boolean aCurrState = gamepad2.a;
-        boolean xCurrState = gamepad2.x;
-        boolean yCurrState = gamepad2.y;
+        boolean gpd2bCurrState = gamepad2.left_bumper;
+        boolean aCurrState = gamepad2.right_bumper;
+        boolean axCurrState = gamepad1.a;
+        boolean bCurrState = gamepad1.b;
+
+        if (gamepad2.y)
+            hardwareHandler.intakeAngle(180);
+
+        if (gamepad2.y)
+            hardwareHandler.intakeAngle(90);
+
+        if (gamepad2.y)
+            hardwareHandler.intakeAngle(0);
+
 
         hardwareHandler.toggleLift(y,1.0);
         hardwareHandler.toggleLift(x,-0.5);
@@ -62,7 +72,7 @@ public class program extends OpMode {
 
         }
 
-        if(xCurrState && !xPrevState) {
+        if(axCurrState && !axPrevState) {
             if (!measureOut)
                 hardwareHandler.measureAngle(60) ;
             else
@@ -70,7 +80,7 @@ public class program extends OpMode {
             measureOut = !(measureOut);
         }
 
-        if(yCurrState && !yPrevState) {
+        if(bCurrState && !bPrevState) {
             if (!measureGoing)
                 hardwareHandler.launchMeasure(1);
             else
@@ -81,8 +91,8 @@ public class program extends OpMode {
 
         gpd2bPrevState = gpd2bCurrState;
         aPrevState = aCurrState;
-        xPrevState = xCurrState;
-        yPrevState = yCurrState;
+        axPrevState = axCurrState;
+        bPrevState = bCurrState;
 
 
 

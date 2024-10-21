@@ -57,6 +57,9 @@ public class HardwareHandler {
 
     private final CRServo tapeMeasure;
 
+    private final Servo leftLiftAngle;
+
+    private final Servo rightLiftAngle;
 
 
 
@@ -75,7 +78,9 @@ public class HardwareHandler {
         leftIntake = juyoungHardwareMap.crservo.get("leftIntake");
         rightIntake = juyoungHardwareMap.crservo.get("rightIntake");
         tapeMeasureAim = juyoungHardwareMap.servo.get("tapeMeasureAim");
-        tapeMeasure = juyoungHardwareMap.crservo.get("tapeMeaure");
+        tapeMeasure = juyoungHardwareMap.crservo.get("tapeMeasure");
+        leftLiftAngle = juyoungHardwareMap.servo.get("leftLiftAngle");
+        rightLiftAngle = juyoungHardwareMap.servo.get("rightLiftAngle");
 
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -291,6 +296,10 @@ public class HardwareHandler {
             tapeMeasure.setPower(speed);
     }
 
+    public void intakeAngle(double angle) {
+            leftLiftAngle.setPosition(angle);
+            rightLiftAngle.setPosition(angle);
+    }
 
     public void toggleLift(boolean y, double power) {
         // Check if the button is pressed
