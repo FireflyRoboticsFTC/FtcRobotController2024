@@ -31,6 +31,8 @@ public class HardwareHandler {
     private final DcMotor rightRear;
     private final DcMotor linearLiftLeft;
     private final DcMotor linearLiftRight;
+    private final DcMotor climbOne;
+    private final DcMotor climbTwo;
     public static double VLF = 1, VRF = 1, VLR = 1, VRR = 1;
     private Telemetry telemetry;
 
@@ -47,11 +49,8 @@ public class HardwareHandler {
 
     private YawPitchRollAngles robotOrientation;
 
-    private final DcMotor linearSlide;
 
-    private final CRServo leftIntake;
-
-    private final CRServo rightIntake;
+    private final CRServo intake;
 
     private final Servo tapeMeasureAim;
 
@@ -71,12 +70,11 @@ public class HardwareHandler {
         leftRear = juyoungHardwareMap.dcMotor.get("leftRear");
         rightFront = juyoungHardwareMap.dcMotor.get("rightFront");
         rightRear = juyoungHardwareMap.dcMotor.get("rightRear");
-        linearSlide = juyoungHardwareMap.dcMotor.get("linearSlide");
         linearLiftLeft = juyoungHardwareMap.dcMotor.get("linearLeft");
         linearLiftRight = juyoungHardwareMap.dcMotor.get("linearRight");
-
-        leftIntake = juyoungHardwareMap.crservo.get("leftIntake");
-        rightIntake = juyoungHardwareMap.crservo.get("rightIntake");
+        climbOne = juyoungHardwareMap.dcMotor.get("climbOne");
+        climbTwo = juyoungHardwareMap.dcMotor.get("climbTwo");
+        intake = juyoungHardwareMap.crservo.get("intake");
         tapeMeasureAim = juyoungHardwareMap.servo.get("tapeMeasureAim");
         tapeMeasure = juyoungHardwareMap.crservo.get("tapeMeasure");
         leftLiftAngle = juyoungHardwareMap.servo.get("leftLiftAngle");
@@ -89,6 +87,8 @@ public class HardwareHandler {
         leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        climbOne.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        climbTwo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -99,6 +99,9 @@ public class HardwareHandler {
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        climbOne.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        climbTwo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         integrator = new SimpsonIntegrator(msPollInterval);
         imu = juyoungHardwareMap.get(IMU.class,"imu");
@@ -193,6 +196,14 @@ public class HardwareHandler {
         rightRear.setPower(power);
     }
 
+    public void climbOn(double power) {
+        climbOne.setPower(power);
+    }
+
+    public void climbTw(double power) {
+        climbTwo.setPower(power);
+    }
+
     public void strafeFourWheel(double power, boolean direction) {
         if (direction) {
             leftFront.setPower(-power);
@@ -266,12 +277,12 @@ public class HardwareHandler {
         // Check if the button state has changed
         if (isButtonPressed && !buttonPressed) {
 
-            linearSlide.setPower(power*rightPowerModifer);
+            climbOne.setPower(power*rightPowerModifer);
             runtime.reset();
 
         } else if (!isButtonPressed && buttonPressed) {
 
-            linearSlide.setPower(0.0);
+            climbOne.setPower(0.0);
 
         }
 
@@ -280,12 +291,36 @@ public class HardwareHandler {
 
     }
 
+    public void toggleSlideTwo(boolean a, double power) {
+        // Check if the button is pressed
+        boolean isButtonPressed = a; // Change "a" to the desired button
+        double rightPowerModifer = 1;
+        if (power > 0)
+            rightPowerModifer = 1;
+        // Check if the button state has changed
+        if (isButtonPressed && !buttonPressed) {
+
+            climbTwo.setPower(power*rightPowerModifer);
+            runtime.reset();
+
+        } else if (!isButtonPressed && buttonPressed) {
+
+            climbTwo.setPower(0.0);
+
+        }
+
+        // Update the button state
+        buttonPressed = isButtonPressed;
+
+    }
+
+
     boolean buttonPressedY = false;
     ElapsedTime runtimeB = new ElapsedTime();
 
     public void intakeSystem(double a) {
-            leftIntake.setPower(a);
-            rightIntake.setPower(-a);
+            intake.setPower(a);
+
     }
 
     public void measureAngle(double angle) {
@@ -298,7 +333,7 @@ public class HardwareHandler {
 
     public void intakeAngle(double angle) {
             leftLiftAngle.setPosition(angle);
-            rightLiftAngle.setPosition(angle);
+            rightLiftAngle.setPosition(1-angle);
     }
 
     public void toggleLift(boolean y, double power) {
@@ -310,7 +345,7 @@ public class HardwareHandler {
         // Check if the button state has changed
         if (isButtonPressedY && !buttonPressedY) {
 
-            linearLiftLeft.setPower(power*powerModifer);
+            linearLiftLeft.setPower(-power*powerModifer);
             linearLiftRight.setPower(power*powerModifer);
             runtimeB.reset();
 

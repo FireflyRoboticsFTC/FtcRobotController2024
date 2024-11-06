@@ -39,13 +39,23 @@ public class program extends OpMode {
         if (gamepad2.y)
             hardwareHandler.intakeAngle(0);
 
+        if (gamepad1.dpad_up)
+            hardwareHandler.climbOn(1);
+
+        if(gamepad1.dpad_down )
+            hardwareHandler.climbTw(1);
 
         hardwareHandler.toggleLift(y,1.0);
         hardwareHandler.toggleLift(x,-0.5);
         boolean a = gamepad1.dpad_down;
         boolean b = gamepad1.dpad_up;
+        boolean z = gamepad2.dpad_down;
+        boolean v = gamepad2.dpad_up;
         hardwareHandler.toggleSlide(a,1.0);
         hardwareHandler.toggleSlide(b,-1);
+        hardwareHandler.toggleSlideTwo(z,1.0);
+        hardwareHandler.toggleSlideTwo(v,-1);
+
         double c = 0.65;
 
         double f = gamepad1.left_stick_y;
