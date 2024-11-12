@@ -341,18 +341,18 @@ public class HardwareHandler {
         boolean isButtonPressedY = y; // Change "a" to the desired button
         double powerModifer = 1;
         if (power > 0)
-            powerModifer = 1;
+            powerModifer = 0.90;
         // Check if the button state has changed
         if (isButtonPressedY && !buttonPressedY) {
 
             linearLiftLeft.setPower(-power*powerModifer);
-            linearLiftRight.setPower(power*powerModifer);
+            linearLiftRight.setPower(power);
             runtimeB.reset();
 
         } else if (!isButtonPressedY && buttonPressedY) {
 
-            linearLiftRight.setPower(0.0);
-            linearLiftLeft.setPower(0.0);
+            linearLiftRight.setPower(0.4);
+            linearLiftLeft.setPower(0.4*powerModifer);
 
         }
 

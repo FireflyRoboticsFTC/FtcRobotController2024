@@ -31,22 +31,20 @@ public class program extends OpMode {
         boolean bCurrState = gamepad1.b;
 
         if (gamepad2.y)
-            hardwareHandler.intakeAngle(180);
-
-        if (gamepad2.y)
-            hardwareHandler.intakeAngle(90);
-
-        if (gamepad2.y)
             hardwareHandler.intakeAngle(0);
 
-        if (gamepad1.dpad_up)
-            hardwareHandler.climbOn(1);
+        if (gamepad2.b)
+            hardwareHandler.intakeAngle(0.2);
 
-        if(gamepad1.dpad_down )
-            hardwareHandler.climbTw(1);
+        if (gamepad2.a)
+            hardwareHandler.intakeAngle(0.425);
 
-        hardwareHandler.toggleLift(y,1.0);
-        hardwareHandler.toggleLift(x,-0.5);
+
+
+        hardwareHandler.climbOn(gamepad2.left_stick_y);
+        hardwareHandler.climbTw(gamepad2.right_stick_y);
+        hardwareHandler.toggleLift(y,0.5);
+        hardwareHandler.toggleLift(x,-1);
         boolean a = gamepad1.dpad_down;
         boolean b = gamepad1.dpad_up;
         boolean z = gamepad2.dpad_down;
@@ -71,6 +69,9 @@ public class program extends OpMode {
                 hardwareHandler.intakeSystem(0);
             intakeIn = !(intakeIn);
         }
+
+
+
 
         if (gpd2bCurrState && !gpd2bPrevState) {
             if (!intakeOut)
