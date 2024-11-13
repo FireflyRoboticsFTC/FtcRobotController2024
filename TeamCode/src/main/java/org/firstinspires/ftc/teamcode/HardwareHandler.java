@@ -94,6 +94,8 @@ public class HardwareHandler {
         leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        climbOne.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        climbTwo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

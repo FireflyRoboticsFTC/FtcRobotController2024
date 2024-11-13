@@ -41,18 +41,18 @@ public class program extends OpMode {
 
 
 
-        hardwareHandler.climbOn(gamepad2.left_stick_y);
-        hardwareHandler.climbTw(gamepad2.right_stick_y);
+        hardwareHandler.climbOn(-gamepad2.left_stick_y); //stage 2
+        hardwareHandler.climbTw(gamepad2.right_stick_y); //stage 1
         hardwareHandler.toggleLift(y,0.5);
         hardwareHandler.toggleLift(x,-1);
-        boolean a = gamepad1.dpad_down;
+        /*boolean a = gamepad1.dpad_down;
         boolean b = gamepad1.dpad_up;
         boolean z = gamepad2.dpad_down;
         boolean v = gamepad2.dpad_up;
         hardwareHandler.toggleSlide(a,1.0);
         hardwareHandler.toggleSlide(b,-1);
         hardwareHandler.toggleSlideTwo(z,1.0);
-        hardwareHandler.toggleSlideTwo(v,-1);
+        hardwareHandler.toggleSlideTwo(v,-1);*/
 
         double c = 0.65;
 

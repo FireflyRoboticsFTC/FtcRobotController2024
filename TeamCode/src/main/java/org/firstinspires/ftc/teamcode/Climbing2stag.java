@@ -7,12 +7,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 @TeleOp(name="Climbing2", group="Test")
 public class Climbing2stag extends OpMode {
 
-    private DcMotor testMotor;
-    private DcMotor testMotor2;
+    //private DcMotor testMotor;
+    //private DcMotor testMotor2;
+    private HardwareHandler hardwareHandler;
+
     @Override
     public void init() {
         // Initialize the motor from the hardware map
-        testMotor = hardwareMap.get(DcMotor.class, "climb1");
+        /*testMotor = hardwareMap.get(DcMotor.class, "climb1");
         testMotor2 = hardwareMap.get(DcMotor.class, "climb2");
         // Reset and configure the motor
         testMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -20,7 +22,8 @@ public class Climbing2stag extends OpMode {
         testMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         testMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         testMotor2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        testMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        testMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);*/
+        hardwareHandler = new HardwareHandler(hardwareMap, telemetry);
 
         telemetry.addData("Status", "Initialized");
     }
@@ -28,16 +31,18 @@ public class Climbing2stag extends OpMode {
     @Override
     public void loop() {
         // Control the motor power using the left joystick's Y-axis
-        double power = -gamepad1.left_stick_y;
-        double powerTwo = -gamepad1.right_stick_y;
-        testMotor.setPower(power);
-        testMotor2.setPower(powerTwo);
+        double power = -gamepad1.left_stick_y; //stage 2
+        double powerTwo = gamepad1.right_stick_y; //stage 1
+        hardwareHandler.climbOn(power); //stage 2
+        hardwareHandler.climbTw(powerTwo); //stage 1
+        //testMotor.setPower(power);
+        //testMotor2.setPower(powerTwo);
     }
 
-    @Override
+    /*@Override
     public void stop() {
         // Stop the motor when the OpMode stops
         testMotor.setPower(0);
         testMotor2.setPower(0);
-    }
+    }*/
 }
