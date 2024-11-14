@@ -89,6 +89,8 @@ public class HardwareHandler {
         rightRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         climbOne.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         climbTwo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        linearLiftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        linearLiftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -96,6 +98,8 @@ public class HardwareHandler {
         rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         climbOne.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         climbTwo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        linearLiftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        linearLiftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -103,6 +107,8 @@ public class HardwareHandler {
         rightRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         climbOne.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         climbTwo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        linearLiftRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        linearLiftLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         integrator = new SimpsonIntegrator(msPollInterval);
@@ -202,8 +208,7 @@ public class HardwareHandler {
         climbOne.setPower(power);
     }
 
-    public void climbTw(double power) {
-        climbTwo.setPower(power);
+    public void climbTw(double power) {climbTwo.setPower(power);
     }
 
     public void strafeFourWheel(double power, boolean direction) {
@@ -343,24 +348,49 @@ public class HardwareHandler {
         boolean isButtonPressedY = y; // Change "a" to the desired button
         double powerModifer = 1;
         if (power > 0)
-            powerModifer = 0.90;
+            powerModifer = 1;
         // Check if the button state has changed
         if (isButtonPressedY && !buttonPressedY) {
 
-            linearLiftLeft.setPower(-power*powerModifer);
+            linearLiftLeft.setPower(-power);
             linearLiftRight.setPower(power);
             runtimeB.reset();
 
         } else if (!isButtonPressedY && buttonPressedY) {
 
-            linearLiftRight.setPower(0.4);
-            linearLiftLeft.setPower(0.4*powerModifer);
+            linearLiftRight.setPower(0);
+            linearLiftLeft.setPower(0);
 
         }
 
         // Update the button state
         buttonPressedY = isButtonPressedY;
 
+    }
+
+    private double servoAngle = 0.0;   // Current servo angle (degrees)
+    private double angleStep = 5.0;    // Increment angle by 5 degrees (adjustable)
+    private boolean prevToggleState = false; // Tracks the previous state of the toggle button
+
+
+    // Method to toggle the servo angle through a range
+    public void toggleServo(boolean toggleButton) {
+        // Check if toggle button was just pressed
+        if (toggleButton && !prevToggleState) {
+            // Increment the servo angle by the step size
+            servoAngle += angleStep;
+
+            // Wrap the angle back to 0 if it exceeds 180 degrees
+            if (servoAngle > 180) {
+                servoAngle = 0;
+            }
+
+
+            tapeMeasureAim.setPosition(servoAngle / 270.0);
+        }
+
+        // Update the previous button state
+        prevToggleState = toggleButton;
     }
 
 

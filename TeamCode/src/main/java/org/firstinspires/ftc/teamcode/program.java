@@ -41,10 +41,10 @@ public class program extends OpMode {
 
 
 
-        hardwareHandler.climbOn(-gamepad2.left_stick_y); //stage 2
-        hardwareHandler.climbTw(gamepad2.right_stick_y); //stage 1
-        hardwareHandler.toggleLift(y,0.5);
-        hardwareHandler.toggleLift(x,-1);
+        hardwareHandler.climbOn(-gamepad2.left_stick_y); //stage 1
+        hardwareHandler.climbTw(gamepad2.right_stick_y); //stage 2
+        hardwareHandler.toggleLift(x,1);
+        hardwareHandler.toggleLift(y,-0.5);
         /*boolean a = gamepad1.dpad_down;
         boolean b = gamepad1.dpad_up;
         boolean z = gamepad2.dpad_down;
@@ -53,6 +53,50 @@ public class program extends OpMode {
         hardwareHandler.toggleSlide(b,-1);
         hardwareHandler.toggleSlideTwo(z,1.0);
         hardwareHandler.toggleSlideTwo(v,-1);*/
+
+        // Declare the climbTw variable and the previous button state
+        boolean climbTw = false; // Initially off
+        boolean prevBumperState = false; // Tracks the previous state of the bumper
+
+            // Check if the bumper button is pressed and toggle climbTw
+            if (gamepad1.left_bumper && !prevBumperState) {
+                climbTw = !climbTw; // Toggle the state of climbTw
+            }
+
+            // Update the previous bumper state
+            prevBumperState = gamepad1.left_bumper;
+
+            // Now you can use climbTw elsewhere in your code
+            if (climbTw) {
+                hardwareHandler.climbTw(1);
+            } else {
+                hardwareHandler.climbTw(0);
+            }
+
+        // Declare the climbTw variable and the previous button state
+        boolean climbTwTw = false; // Initially off
+        boolean prevBumperState2 = false; // Tracks the previous state of the bumper
+
+            // Check if the bumper button is pressed and toggle climbTw
+            if (gamepad1.right_bumper && !prevBumperState2) {
+                climbTw = !climbTw; // Toggle the state of climbTw
+            }
+
+            // Update the previous bumper state
+            prevBumperState2 = gamepad1.right_bumper;
+
+            // Now you can use climbTw elsewhere in your code
+            if (climbTwTw) {
+                hardwareHandler.climbTw(-1);
+            } else {
+                hardwareHandler.climbTw(0);
+            }
+
+
+
+
+
+
 
         double c = 0.65;
 
