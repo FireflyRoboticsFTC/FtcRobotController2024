@@ -14,21 +14,67 @@ public class program extends OpMode {
     private boolean measureOut = false;
     private boolean bPrevState = false;
     private boolean measureGoing = false;
-    Gamepad gamePad1;
+    private boolean yPrev = false;
+    private boolean climbUp = false;
+    private boolean xPrev = false;
+    private boolean climbDown = false;
+    private boolean leftPrev = false;
+    private boolean climbTwoUp = false;
+    private boolean rightPrev = false;
+    private boolean climbTwoDown = false;
+    private boolean slowPrev = false;
+    private boolean slowOn = false;
+    private double slowMode = 1;
 
     @Override
     public void init() {
         hardwareHandler = new HardwareHandler(hardwareMap, telemetry);
+        hardwareHandler.setMeasure();
     }
 
     @Override
     public void loop(){
-        boolean y = gamepad1.y;
-        boolean x = gamepad1.x;
-        boolean gpd2bCurrState = gamepad2.left_bumper;
-        boolean aCurrState = gamepad2.right_bumper;
-        boolean axCurrState = gamepad1.a;
-        boolean bCurrState = gamepad1.b;
+        boolean y = gamepad1.dpad_up;
+        boolean x = gamepad1.dpad_down;
+        boolean gpd2bCurrState = gamepad1.b;
+        boolean aCurrState = gamepad1.a;
+        boolean axCurrState = gamepad2.dpad_down;
+        boolean bCurrState = gamepad2.dpad_up;
+        boolean climbTwoUpCurr = gamepad2.dpad_right;
+        boolean climbTwoDownCurr = gamepad2.dpad_left;
+        boolean slowCurr = gamepad1.x;
+
+        if (slowCurr && !slowPrev) {
+            if (!slowOn)
+                slowMode = 0.4;
+            else
+                slowMode = 0;
+            slowOn = !(slowOn);
+        }
+
+        double c = 0.65;
+        double f = gamepad1.left_stick_y;
+        double r = gamepad1.right_stick_x * 0.5 / 0.65;
+        double s = gamepad1.left_stick_x;
+        double speed = Math.max(Math.max(f * f, r * r), s * s) * c * slowMode;
+        hardwareHandler.moveWithPower(f, r, s, speed);
+
+
+        if (aCurrState && !aPrevState) {
+            if (!intakeIn)
+                hardwareHandler.intakeSystem(1);
+            else
+                hardwareHandler.intakeSystem(0);
+            intakeIn = !(intakeIn);
+        }
+
+        if (gpd2bCurrState && !gpd2bPrevState) {
+            if (!intakeOut)
+                hardwareHandler.intakeSystem(-1);
+            else
+                hardwareHandler.intakeSystem(0);
+            intakeOut = !(intakeOut);
+        }
 
         if (gamepad2.y)
             hardwareHandler.intakeAngle(0);
@@ -39,12 +85,75 @@ public class program extends OpMode {
         if (gamepad2.a)
             hardwareHandler.intakeAngle(0.425);
 
+        hardwareHandler.joystickLiftOne(gamepad2.left_stick_y);
+        hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y);
 
 
-        hardwareHandler.climbOn(-gamepad2.left_stick_y); //stage 1
-        hardwareHandler.climbTw(gamepad2.right_stick_y); //stage 2
-        hardwareHandler.toggleLift(x,1);
-        hardwareHandler.toggleLift(y,-0.5);
+        hardwareHandler.measureAngle(gamepad2.right_stick_y);
+        hardwareHandler.measurePosition();
+
+        if (x && !xPrev) {
+            if (!climbUp)
+                hardwareHandler.climbOn(1);
+            else
+                hardwareHandler.climbOn(0);
+            climbUp = !(climbUp);
+        }
+
+        if (y && !yPrev) {
+            if (!climbDown)
+                hardwareHandler.climbOn(-1);
+            else
+                hardwareHandler.climbOn(0);
+            climbDown = !(climbDown);
+        }
+
+        if(climbTwoUpCurr && !rightPrev) {
+            if (!climbTwoUp)
+                hardwareHandler.climbTw(1);
+            else
+                hardwareHandler.climbTw(0);
+            climbTwoUp = !(climbTwoUp);
+        }
+
+        if(climbTwoDownCurr && !leftPrev) {
+            if (!climbTwoDown)
+                hardwareHandler.climbTw(-1);
+            else
+                hardwareHandler.climbTw(0);
+            climbTwoDown = !(climbTwoDown);
+        }
+
+        if(bCurrState && !bPrevState) {
+            if (!measureGoing) {
+                hardwareHandler.launchMeasure(-1);
+                hardwareHandler.climbTw(0.6);
+            } else {
+                hardwareHandler.launchMeasure(0);
+                hardwareHandler.climbTw(0);
+            }
+            measureGoing = !(measureGoing);
+        }
+
+        if(axCurrState && !axPrevState) {
+            if (!measureOut) {
+                hardwareHandler.launchMeasure(1);
+                hardwareHandler.climbTw(-0.6);
+            } else {
+                hardwareHandler.launchMeasure(0);
+                hardwareHandler.climbTw(0);
+            }
+            measureOut = !(measureOut);
+        }
+
+
+        //hardwareHandler.climbOn(-gamepad2.left_stick_y); //stage 1
+        //hardwareHandler.climbTw(gamepad2.right_stick_y); //stage 2
+
+        //hardwareHandler.holdLift(gamepad1.x,1); //down
+        //hardwareHandler.holdLift(gamepad1.y,-1); //up
+        //hardwareHandler.toggleLift(x,1);
+        //hardwareHandler.toggleLift(y,-0.5);
         /*boolean a = gamepad1.dpad_down;
         boolean b = gamepad1.dpad_up;
         boolean z = gamepad2.dpad_down;
@@ -55,7 +164,7 @@ public class program extends OpMode {
         hardwareHandler.toggleSlideTwo(v,-1);*/
 
         // Declare the climbTw variable and the previous button state
-        boolean climbTw = false; // Initially off
+        /*boolean climbTw = false; // Initially off
         boolean prevBumperState = false; // Tracks the previous state of the bumper
 
             // Check if the bumper button is pressed and toggle climbTw
@@ -90,68 +199,24 @@ public class program extends OpMode {
                 hardwareHandler.climbTw(-1);
             } else {
                 hardwareHandler.climbTw(0);
-            }
+            }*/
 
-
-
-
-
-
-
-        double c = 0.65;
-
-        double f = gamepad1.left_stick_y;
-        double r = gamepad1.right_stick_x * 0.5 / 0.65;
-        double s = gamepad1.left_stick_x;
-        double speed = Math.max(Math.max(f * f, r * r), s * s) * c;
-        hardwareHandler.moveWithPower(f, r, s, speed);
-
-        if (aCurrState && !aPrevState) {
-            if (!intakeIn)
-                hardwareHandler.intakeSystem(1);
-            else
-                hardwareHandler.intakeSystem(0);
-            intakeIn = !(intakeIn);
-        }
-
-
-
-
-        if (gpd2bCurrState && !gpd2bPrevState) {
-            if (!intakeOut)
-                hardwareHandler.intakeSystem(-1);
-            else
-                hardwareHandler.intakeSystem(0);
-
-            intakeOut = !(intakeOut);
-
-        }
-
-        if(axCurrState && !axPrevState) {
+        /*if(axCurrState && !axPrevState) {
             if (!measureOut)
                 hardwareHandler.measureAngle(60) ;
             else
                 hardwareHandler.measureAngle(0);
             measureOut = !(measureOut);
-        }
-
-        if(bCurrState && !bPrevState) {
-            if (!measureGoing)
-                hardwareHandler.launchMeasure(1);
-            else
-                hardwareHandler.launchMeasure(0);
-            measureGoing = !(measureGoing);
-        }
-
+        }*/
 
         gpd2bPrevState = gpd2bCurrState;
         aPrevState = aCurrState;
         axPrevState = axCurrState;
         bPrevState = bCurrState;
-
-
-
-
-
+        yPrev = y;
+        xPrev = x;
+        leftPrev = climbTwoDownCurr;
+        rightPrev = climbTwoUpCurr;
+        slowPrev = slowCurr;
     }
 }

@@ -96,10 +96,10 @@ public class HardwareHandler {
         leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        climbOne.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        climbTwo.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        linearLiftRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        linearLiftLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        climbOne.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        climbTwo.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        linearLiftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        linearLiftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftRear.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -204,12 +204,9 @@ public class HardwareHandler {
         rightRear.setPower(power);
     }
 
-    public void climbOn(double power) {
-        climbOne.setPower(power);
-    }
+    public void climbOn(double power) {climbOne.setPower(power); }
 
-    public void climbTw(double power) {climbTwo.setPower(power);
-    }
+    public void climbTw(double power) {climbTwo.setPower(power); }
 
     public void strafeFourWheel(double power, boolean direction) {
         if (direction) {
@@ -275,7 +272,7 @@ public class HardwareHandler {
     boolean buttonPressed = false;
     ElapsedTime runtime = new ElapsedTime();
 
-    public void toggleSlide(boolean a, double power) {
+    /*public void toggleSlide(boolean a, double power) {
         // Check if the button is pressed
         boolean isButtonPressed = a; // Change "a" to the desired button
         double rightPowerModifer = 1;
@@ -296,9 +293,9 @@ public class HardwareHandler {
         // Update the button state
         buttonPressed = isButtonPressed;
 
-    }
+    }*/
 
-    public void toggleSlideTwo(boolean a, double power) {
+    /*public void toggleSlideTwo(boolean a, double power) {
         // Check if the button is pressed
         boolean isButtonPressed = a; // Change "a" to the desired button
         double rightPowerModifer = 1;
@@ -319,7 +316,7 @@ public class HardwareHandler {
         // Update the button state
         buttonPressed = isButtonPressed;
 
-    }
+    }*/
 
 
     boolean buttonPressedY = false;
@@ -330,20 +327,28 @@ public class HardwareHandler {
 
     }
 
-    public void measureAngle(double angle) {
-            tapeMeasureAim.setPosition(angle);
+    public void setMeasure() {
+        tapeMeasureAim.setPosition(0.2);
     }
 
-    public void launchMeasure(double speed){
-            tapeMeasure.setPower(speed);
+    public void measureAngle(double direction) {
+        double currPos = tapeMeasureAim.getPosition();
+        //if ((currPos != 1 && direction < 0) || (currPos != 0 && direction > 0))
+        tapeMeasureAim.setPosition(currPos+direction*-0.001);
     }
+
+    public void measurePosition() {
+        telemetry.addData("Tape Measure Servo Position", tapeMeasureAim.getPosition());
+    }
+
+    public void launchMeasure(double direction) {tapeMeasure.setPower(direction); }
 
     public void intakeAngle(double angle) {
             leftLiftAngle.setPosition(angle);
             rightLiftAngle.setPosition(1-angle);
     }
 
-    public void toggleLift(boolean y, double power) {
+    /*public void toggleLift(boolean y, double power) {
         // Check if the button is pressed
         boolean isButtonPressedY = y; // Change "a" to the desired button
         double powerModifer = 1;
@@ -366,6 +371,23 @@ public class HardwareHandler {
         // Update the button state
         buttonPressedY = isButtonPressedY;
 
+    }*/
+
+    public void holdLift(boolean button, double power) {
+        if (button) {
+            linearLiftLeft.setPower(-power);
+            linearLiftRight.setPower(power);
+        } else {
+            linearLiftLeft.setPower(0);
+            linearLiftRight.setPower(0);
+        }
+    }
+
+    public void joystickLiftOne(double power) {
+        linearLiftLeft.setPower(-power);
+    }
+    public void joystickLiftTwo(double power) {
+        linearLiftRight.setPower(power);
     }
 
     private double servoAngle = 0.0;   // Current servo angle (degrees)
@@ -386,7 +408,7 @@ public class HardwareHandler {
             }
 
 
-            tapeMeasureAim.setPosition(servoAngle / 270.0);
+            //tapeMeasureAim.setPosition(servoAngle / 270.0);
         }
 
         // Update the previous button state
