@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="robotTeleOpTest", group="robotgroup")
 public class program extends OpMode {
@@ -22,33 +23,43 @@ public class program extends OpMode {
     private boolean climbTwoUp = false;
     private boolean rightPrev = false;
     private boolean climbTwoDown = false;
+    private boolean tapeUpPrev = false;
+    private boolean tapeUp = false;
+    private boolean tapeDownPrev = false;
+    private boolean tapeDown = false;
     private boolean slowPrev = false;
     private boolean slowOn = false;
     private double slowMode = 1;
+
+    private ElapsedTime runtime = new ElapsedTime();
 
     @Override
     public void init() {
         hardwareHandler = new HardwareHandler(hardwareMap, telemetry);
         hardwareHandler.setMeasure();
+        hardwareHandler.intakeAngle(0);
     }
 
     @Override
     public void loop(){
         boolean y = gamepad1.dpad_up;
         boolean x = gamepad1.dpad_down;
-        boolean gpd2bCurrState = gamepad1.b;
-        boolean aCurrState = gamepad1.a;
+        boolean gpd2bCurrState = gamepad2.a;
+        boolean aCurrState = gamepad2.x;
         boolean axCurrState = gamepad2.dpad_down;
         boolean bCurrState = gamepad2.dpad_up;
         boolean climbTwoUpCurr = gamepad2.dpad_right;
         boolean climbTwoDownCurr = gamepad2.dpad_left;
-        boolean slowCurr = gamepad1.x;
+        boolean slowCurr = gamepad1.b;
+        boolean tapeUpCurr = gamepad1.dpad_right;
+        boolean tapeDownCurr = gamepad1.dpad_left;
+
 
         if (slowCurr && !slowPrev) {
             if (!slowOn)
                 slowMode = 0.4;
             else
-                slowMode = 0;
+                slowMode = 1;
             slowOn = !(slowOn);
         }
 
@@ -76,17 +87,17 @@ public class program extends OpMode {
             intakeOut = !(intakeOut);
         }
 
-        if (gamepad2.y)
+        if (gamepad1.y)
             hardwareHandler.intakeAngle(0);
 
-        if (gamepad2.b)
+        if (gamepad1.x)
             hardwareHandler.intakeAngle(0.2);
 
-        if (gamepad2.a)
-            hardwareHandler.intakeAngle(0.425);
+        if (gamepad1.a)
+            hardwareHandler.intakeAngle(0.375);
 
-        hardwareHandler.joystickLiftOne(gamepad2.left_stick_y);
-        hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y);
+        hardwareHandler.joystickLiftOne(gamepad2.left_stick_y*0.8);
+        hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y*0.8);
 
 
         hardwareHandler.measureAngle(gamepad2.right_stick_y);
@@ -101,16 +112,22 @@ public class program extends OpMode {
         }
 
         if (y && !yPrev) {
-            if (!climbDown)
+            if (!climbDown) {
                 hardwareHandler.climbOn(-1);
-            else
+                runtime.reset();
+            } else
                 hardwareHandler.climbOn(0);
+            climbDown = !(climbDown);
+        }
+
+        if (climbDown && runtime.milliseconds() == 5000) {
+            hardwareHandler.climbOn(0);
             climbDown = !(climbDown);
         }
 
         if(climbTwoUpCurr && !rightPrev) {
             if (!climbTwoUp)
-                hardwareHandler.climbTw(1);
+                hardwareHandler.climbTw(-1);
             else
                 hardwareHandler.climbTw(0);
             climbTwoUp = !(climbTwoUp);
@@ -118,16 +135,32 @@ public class program extends OpMode {
 
         if(climbTwoDownCurr && !leftPrev) {
             if (!climbTwoDown)
-                hardwareHandler.climbTw(-1);
+                hardwareHandler.climbTw(1);
             else
                 hardwareHandler.climbTw(0);
             climbTwoDown = !(climbTwoDown);
         }
 
+        /*if(tapeUpCurr && !tapeUpPrev) {
+            if (!tapeUp)
+                hardwareHandler.launchMeasure(-1);
+            else
+                hardwareHandler.launchMeasure(0);
+            tapeUp = !(tapeUp);
+        }
+
+        if(tapeDownCurr && !tapeDownPrev) {
+            if (!tapeDown)
+                hardwareHandler.launchMeasure(1);
+            else
+                hardwareHandler.launchMeasure(0);
+            tapeDown = !(tapeDown);
+        }*/
+
         if(bCurrState && !bPrevState) {
             if (!measureGoing) {
                 hardwareHandler.launchMeasure(-1);
-                hardwareHandler.climbTw(0.6);
+                hardwareHandler.climbTw(-0.8);
             } else {
                 hardwareHandler.launchMeasure(0);
                 hardwareHandler.climbTw(0);
@@ -138,7 +171,7 @@ public class program extends OpMode {
         if(axCurrState && !axPrevState) {
             if (!measureOut) {
                 hardwareHandler.launchMeasure(1);
-                hardwareHandler.climbTw(-0.6);
+                hardwareHandler.climbTw(0.8);
             } else {
                 hardwareHandler.launchMeasure(0);
                 hardwareHandler.climbTw(0);
@@ -218,5 +251,7 @@ public class program extends OpMode {
         leftPrev = climbTwoDownCurr;
         rightPrev = climbTwoUpCurr;
         slowPrev = slowCurr;
+        tapeUpPrev = tapeUpCurr;
+        tapeDownPrev = tapeDownCurr;
     }
 }

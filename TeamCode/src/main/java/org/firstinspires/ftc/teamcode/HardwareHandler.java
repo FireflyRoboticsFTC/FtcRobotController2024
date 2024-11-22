@@ -270,7 +270,6 @@ public class HardwareHandler {
 
 
     boolean buttonPressed = false;
-    ElapsedTime runtime = new ElapsedTime();
 
     /*public void toggleSlide(boolean a, double power) {
         // Check if the button is pressed
