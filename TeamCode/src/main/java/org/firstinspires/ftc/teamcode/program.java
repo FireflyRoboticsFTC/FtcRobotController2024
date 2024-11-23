@@ -36,20 +36,21 @@ public class program extends OpMode {
     @Override
     public void init() {
         hardwareHandler = new HardwareHandler(hardwareMap, telemetry);
-        hardwareHandler.setMeasure();
+        hardwareHandler.setMeasure(0.7);
         hardwareHandler.intakeAngle(0);
+        runtime.reset();
     }
 
     @Override
     public void loop(){
         boolean y = gamepad1.dpad_up;
         boolean x = gamepad1.dpad_down;
-        boolean gpd2bCurrState = gamepad2.a;
-        boolean aCurrState = gamepad2.x;
+        boolean gpd2bCurrState = gamepad2.x;
+        boolean aCurrState = gamepad2.a;
         boolean axCurrState = gamepad2.dpad_down;
         boolean bCurrState = gamepad2.dpad_up;
-        boolean climbTwoUpCurr = gamepad2.dpad_right;
-        boolean climbTwoDownCurr = gamepad2.dpad_left;
+        boolean climbTwoUpCurr = gamepad2.dpad_left;
+        boolean climbTwoDownCurr = gamepad2.dpad_right;
         boolean slowCurr = gamepad1.b;
         boolean tapeUpCurr = gamepad1.dpad_right;
         boolean tapeDownCurr = gamepad1.dpad_left;
@@ -57,13 +58,13 @@ public class program extends OpMode {
 
         if (slowCurr && !slowPrev) {
             if (!slowOn)
-                slowMode = 0.4;
+                slowMode = 0.25;
             else
                 slowMode = 1;
             slowOn = !(slowOn);
         }
 
-        double c = 0.65;
+        double c = 0.5;
         double f = gamepad1.left_stick_y;
         double r = gamepad1.right_stick_x * 0.5 / 0.65;
         double s = gamepad1.left_stick_x;
@@ -94,14 +95,18 @@ public class program extends OpMode {
             hardwareHandler.intakeAngle(0.2);
 
         if (gamepad1.a)
-            hardwareHandler.intakeAngle(0.375);
+            hardwareHandler.intakeAngle(0.325);
 
-        hardwareHandler.joystickLiftOne(gamepad2.left_stick_y*0.8);
-        hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y*0.8);
+        hardwareHandler.joystickLiftOne(gamepad2.left_stick_y*0.5);
+        hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y*0.5);
 
 
         hardwareHandler.measureAngle(gamepad2.right_stick_y);
         hardwareHandler.measurePosition();
+
+        if (gamepad2.y || gamepad2.b) {
+            hardwareHandler.setMeasure(0.6);
+        }
 
         if (x && !xPrev) {
             if (!climbUp)
@@ -120,7 +125,10 @@ public class program extends OpMode {
             climbDown = !(climbDown);
         }
 
-        if (climbDown && runtime.milliseconds() == 5000) {
+        telemetry.addData("runtime", runtime);
+        telemetry.addData("boolean", climbDown);
+
+        if (climbDown && runtime.milliseconds() > 5000) {
             hardwareHandler.climbOn(0);
             climbDown = !(climbDown);
         }
@@ -160,7 +168,7 @@ public class program extends OpMode {
         if(bCurrState && !bPrevState) {
             if (!measureGoing) {
                 hardwareHandler.launchMeasure(-1);
-                hardwareHandler.climbTw(-0.8);
+                hardwareHandler.climbTw(-0.6);
             } else {
                 hardwareHandler.launchMeasure(0);
                 hardwareHandler.climbTw(0);
@@ -168,10 +176,12 @@ public class program extends OpMode {
             measureGoing = !(measureGoing);
         }
 
+
+
         if(axCurrState && !axPrevState) {
             if (!measureOut) {
                 hardwareHandler.launchMeasure(1);
-                hardwareHandler.climbTw(0.8);
+                hardwareHandler.climbTw(0.6);
             } else {
                 hardwareHandler.launchMeasure(0);
                 hardwareHandler.climbTw(0);

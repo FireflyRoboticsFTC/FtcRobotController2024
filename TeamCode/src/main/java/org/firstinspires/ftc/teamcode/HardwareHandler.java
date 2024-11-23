@@ -92,10 +92,10 @@ public class HardwareHandler {
         linearLiftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         linearLiftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         climbOne.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         climbTwo.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         linearLiftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -204,22 +204,39 @@ public class HardwareHandler {
         rightRear.setPower(power);
     }
 
+    public void moveFourEncoder(double forwardPower, double correction, double strafePower, double overallPower) {
+        leftFront.setPower(forwardPower - correction);
+        leftRear.setPower(forwardPower - correction);
+        rightFront.setPower(forwardPower + correction);
+        rightRear.setPower(forwardPower + correction);
+    }
+
+
+public double distanceToTicks(double distanceInInches) {
+    double wheelDiameter = 4.0;
+    double wheelCircumference = wheelDiameter * Math.PI;
+    double countsPerRevolution = 1120;
+    double gearRatio = 1.0;
+
+    return (distanceInInches / wheelCircumference) * countsPerRevolution * gearRatio;
+}
+
     public void climbOn(double power) {climbOne.setPower(power); }
 
     public void climbTw(double power) {climbTwo.setPower(power); }
 
     public void strafeFourWheel(double power, boolean direction) {
         if (direction) {
-            leftFront.setPower(-power);
+            leftFront.setPower(-power*0.6);
             leftRear.setPower(power*0.5);
-            rightFront.setPower(power);
-            rightRear.setPower(-power*0.5);
+            rightFront.setPower(power*0.5);
+            rightRear.setPower(-power*0.6);
         }
         else {
-            leftFront.setPower(power);
+            leftFront.setPower(power*0.6);
             leftRear.setPower(-power*0.5);
-            rightFront.setPower(power);
-            rightRear.setPower(-power*0.5 );
+            rightFront.setPower(power*0.5);
+            rightRear.setPower(-power*0.625 );
         }
 
 
@@ -253,20 +270,28 @@ public class HardwareHandler {
         double correction;
         double error;
         double initialEncoderPosition = getAverageEncoderPosition();
-        double targetPosition = initialEncoderPosition + distance;
+        double targetPosition = initialEncoderPosition + distanceToTicks(distance);
+        long startTime = System.currentTimeMillis();
+        long timeOut = 5000;
 
-        while (getAverageEncoderPosition() < targetPosition) {
+        while (getAverageEncoderPosition() < targetPosition && System.currentTimeMillis() - startTime < timeOut) {
             imuAngles = getIMUAngles();
             currentYaw = imuAngles[0];
             error = desiredHeading - currentYaw;
             correction = error * 0.01;
-            moveWithPower(power, correction, 0, power);
-            telemetry.addData("Encoder Position and current yaw","current position " + getAverageEncoderPosition() + "current angle " + currentYaw );
+            moveFourEncoder(power, correction, 0, power);
+
+            telemetry.addData("Encoder Position", getAverageEncoderPosition());
+            telemetry.addData("Current Yaw", currentYaw);
+            telemetry.addData("Target Position", targetPosition);
             telemetry.update();
         }
 
         stopMotors();
+        telemetry.addData("Status", "Movement Complete");
+        telemetry.update();
     }
+
 
 
     boolean buttonPressed = false;
@@ -326,8 +351,8 @@ public class HardwareHandler {
 
     }
 
-    public void setMeasure() {
-        tapeMeasureAim.setPosition(0.2);
+    public void setMeasure(double angle) {
+        tapeMeasureAim.setPosition(angle);
     }
 
     public void measureAngle(double direction) {
