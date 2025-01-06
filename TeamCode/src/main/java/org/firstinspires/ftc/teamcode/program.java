@@ -30,19 +30,25 @@ public class program extends OpMode {
     private boolean slowPrev = false;
     private boolean slowOn = false;
     private double slowMode = 1;
+    private boolean initial = true;
 
     private ElapsedTime runtime = new ElapsedTime();
 
     @Override
     public void init() {
         hardwareHandler = new HardwareHandler(hardwareMap, telemetry);
-        hardwareHandler.setMeasure(0.7);
-        hardwareHandler.intakeAngle(0);
         runtime.reset();
     }
 
     @Override
     public void loop(){
+        if (initial) {
+            hardwareHandler.setMeasure(0);
+            hardwareHandler.intakeAngle(0);
+            initial = !(initial);
+        }
+
+
         boolean y = gamepad1.dpad_up;
         boolean x = gamepad1.dpad_down;
         boolean gpd2bCurrState = gamepad2.x;
@@ -95,7 +101,7 @@ public class program extends OpMode {
             hardwareHandler.intakeAngle(0.2);
 
         if (gamepad1.a)
-            hardwareHandler.intakeAngle(0.325);
+            hardwareHandler.intakeAngle(0.39);
 
         hardwareHandler.joystickLiftOne(gamepad2.left_stick_y*0.5);
         hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y*0.5);
@@ -104,7 +110,7 @@ public class program extends OpMode {
         hardwareHandler.measureAngle(gamepad2.right_stick_y);
         hardwareHandler.measurePosition();
 
-        if (gamepad2.y || gamepad2.b) {
+        if (gamepad2.y) {
             hardwareHandler.setMeasure(0.6);
         }
 

@@ -50,11 +50,14 @@ public class HardwareHandler {
     private YawPitchRollAngles robotOrientation;
 
 
-    private final CRServo intake;
+    private final CRServo leftIntake;
+    private final CRServo rightIntake;
 
-    private final Servo tapeMeasureAim;
+    private final Servo leftTapeMeasureAim;
+    private final Servo rightTapeMeasureAim;
 
-    private final CRServo tapeMeasure;
+    private final CRServo leftTapeMeasure;
+    private final CRServo rightTapeMeasure;
 
     private final Servo leftLiftAngle;
 
@@ -74,9 +77,12 @@ public class HardwareHandler {
         linearLiftRight = juyoungHardwareMap.dcMotor.get("linearRight");
         climbOne = juyoungHardwareMap.dcMotor.get("climbOne");
         climbTwo = juyoungHardwareMap.dcMotor.get("climbTwo");
-        intake = juyoungHardwareMap.crservo.get("intake");
-        tapeMeasureAim = juyoungHardwareMap.servo.get("tapeMeasureAim");
-        tapeMeasure = juyoungHardwareMap.crservo.get("tapeMeasure");
+        leftIntake = juyoungHardwareMap.crservo.get("leftIntake");
+        rightIntake = juyoungHardwareMap.crservo.get("rightIntake");
+        leftTapeMeasureAim = juyoungHardwareMap.servo.get("leftTapeMeasureAim");
+        rightTapeMeasureAim = juyoungHardwareMap.servo.get("rightTapeMeasureAim");
+        leftTapeMeasure = juyoungHardwareMap.crservo.get("leftTapeMeasure");
+        rightTapeMeasure = juyoungHardwareMap.crservo.get("rightTapeMeasure");
         leftLiftAngle = juyoungHardwareMap.servo.get("leftLiftAngle");
         rightLiftAngle = juyoungHardwareMap.servo.get("rightLiftAngle");
 
@@ -117,16 +123,8 @@ public class HardwareHandler {
         IMU.Parameters myIMUparameters;
         myIMUparameters = new IMU.Parameters(
                 new RevHubOrientationOnRobot(
-                        new Orientation(
-                                AxesReference.INTRINSIC,
-                                AxesOrder.ZYX,
-                                AngleUnit.DEGREES,
-                                90,
-                                0,
-                                0,
-                                0)
-
-
+                        RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
+                        RevHubOrientationOnRobot.UsbFacingDirection.RIGHT
                 )
         );
         imu.initialize(myIMUparameters);
@@ -191,8 +189,10 @@ public class HardwareHandler {
     public void telemetryEncoderPosition() {
         telemetry.addData("leftFront: ", leftFront.getCurrentPosition());
         telemetry.addData("leftRear: ", leftRear.getCurrentPosition());
+        telemetry.addData("left diff: ", leftFront.getCurrentPosition()/(leftRear.getCurrentPosition()+0.0001));
         telemetry.addData("rightFront: ", rightFront.getCurrentPosition());
         telemetry.addData("rightRear: ", rightRear.getCurrentPosition());
+        telemetry.addData("right diff: ", rightFront.getCurrentPosition()/(rightRear.getCurrentPosition()+0.0001));
         telemetry.addData("Average: ", getAverageEncoderPosition());
         telemetry.update();
     }
@@ -251,11 +251,14 @@ public double distanceToTicks(double distanceInInches) {
         double[] imuAngles = getIMUAngles();
         double currentYaw = imuAngles[0];
         double tolerance = 1.0;
-        double direction = targetAngle > currentYaw ? 1 : -1;
+        double direction = targetAngle > currentYaw ? -1 : 1;
         while (Math.abs(currentYaw - targetAngle) > tolerance) {
+            telemetry.addData("curr yaw", currentYaw);
+            telemetry.addData("direction", direction);
+            telemetry.update();
             double error = targetAngle - currentYaw;
             double turnPower = direction * power * (error / 180.0);
-            moveWithPower(0, turnPower, 0, Math.abs(turnPower));
+            moveWithPower(0, turnPower, 0, turnPower);
             imuAngles = getIMUAngles();
             currentYaw = imuAngles[0];
 
@@ -273,8 +276,42 @@ public double distanceToTicks(double distanceInInches) {
         double targetPosition = initialEncoderPosition + distanceToTicks(distance);
         long startTime = System.currentTimeMillis();
         long timeOut = 5000;
+        imuAngles = getIMUAngles();
+        currentYaw = imuAngles[0];
+        desiredHeading += currentYaw;
 
         while (getAverageEncoderPosition() < targetPosition && System.currentTimeMillis() - startTime < timeOut) {
+            imuAngles = getIMUAngles();
+            currentYaw = imuAngles[0];
+            error = desiredHeading - currentYaw;
+            correction = error * 0.01;
+            moveFourEncoder(power, correction, 0, power);
+
+            telemetry.addData("Encoder Position", getAverageEncoderPosition());
+            telemetry.addData("Current Yaw", currentYaw);
+            telemetry.addData("Target Position", targetPosition);
+            telemetry.update();
+        }
+
+        stopMotors();
+        telemetry.addData("Status", "Movement Complete");
+        telemetry.update();
+    }
+
+    public void moveBackwardWithHeading(double power, double distance, double desiredHeading) {
+        double[] imuAngles;
+        double currentYaw;
+        double correction;
+        double error;
+        double initialEncoderPosition = getAverageEncoderPosition();
+        double targetPosition = initialEncoderPosition + distanceToTicks(distance);
+        long startTime = System.currentTimeMillis();
+        long timeOut = 5000;
+        imuAngles = getIMUAngles();
+        currentYaw = imuAngles[0];
+        desiredHeading += currentYaw;
+
+        while (getAverageEncoderPosition() > targetPosition && System.currentTimeMillis() - startTime < timeOut) {
             imuAngles = getIMUAngles();
             currentYaw = imuAngles[0];
             error = desiredHeading - currentYaw;
@@ -347,25 +384,33 @@ public double distanceToTicks(double distanceInInches) {
     ElapsedTime runtimeB = new ElapsedTime();
 
     public void intakeSystem(double a) {
-            intake.setPower(a);
-
+        leftIntake.setPower(-a);
+        rightIntake.setPower(a);
     }
 
     public void setMeasure(double angle) {
-        tapeMeasureAim.setPosition(angle);
+        leftTapeMeasureAim.setPosition(.9728-angle);
+        rightTapeMeasureAim.setPosition(angle);
     }
 
     public void measureAngle(double direction) {
-        double currPos = tapeMeasureAim.getPosition();
-        //if ((currPos != 1 && direction < 0) || (currPos != 0 && direction > 0))
-        tapeMeasureAim.setPosition(currPos+direction*-0.001);
+        double leftCurrPos = leftTapeMeasureAim.getPosition();
+        double rightCurrPos = rightTapeMeasureAim.getPosition();
+        if ((leftCurrPos > 0.763 && direction < 0) || (rightCurrPos > 0 && direction > 0)) {
+            leftTapeMeasureAim.setPosition(leftCurrPos + direction * 0.001);
+            rightTapeMeasureAim.setPosition(rightCurrPos + direction * -0.001);
+        }
     }
 
     public void measurePosition() {
-        telemetry.addData("Tape Measure Servo Position", tapeMeasureAim.getPosition());
+        telemetry.addData("Left Tape Measure Servo Position", leftTapeMeasureAim.getPosition());
+        telemetry.addData("Right Tape Measure Servo Position", rightTapeMeasureAim.getPosition());
     }
 
-    public void launchMeasure(double direction) {tapeMeasure.setPower(direction); }
+    public void launchMeasure(double direction) {
+        leftTapeMeasure.setPower(-direction);
+        rightTapeMeasure.setPower(direction);
+    }
 
     public void intakeAngle(double angle) {
             leftLiftAngle.setPosition(angle);
@@ -397,13 +442,40 @@ public double distanceToTicks(double distanceInInches) {
 
     }*/
 
-    public void holdLift(boolean button, double power) {
+    public void holdLift(boolean button, int pos, double power) {
         if (button) {
-            linearLiftLeft.setPower(-power);
-            linearLiftRight.setPower(power);
-        } else {
+            /*telemetry.addData("left", linearLiftLeft.getCurrentPosition());
+            telemetry.addData("right", linearLiftRight.getCurrentPosition());
+            telemetry.update();*/
+
+            linearLiftLeft.setTargetPosition(pos);
+            linearLiftRight.setTargetPosition(-pos);
+
+            linearLiftRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            linearLiftLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            linearLiftLeft.setPower(power);
+            linearLiftRight.setPower(-power);
+
+            while (linearLiftRight.isBusy() && linearLiftLeft.isBusy()) {
+                telemetry.addData("left", linearLiftLeft.getCurrentPosition());
+                telemetry.addData("right", linearLiftRight.getCurrentPosition());
+                telemetry.update();
+            }
+
             linearLiftLeft.setPower(0);
             linearLiftRight.setPower(0);
+
+            linearLiftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            linearLiftLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            /*while(pos > linearLiftLeft.getCurrentPosition() && -pos < linearLiftRight.getCurrentPosition()) {
+                telemetry.addData("left", linearLiftLeft.getCurrentPosition());
+                telemetry.addData("right", linearLiftRight.getCurrentPosition());
+                telemetry.update();
+            }*/
+        } else {
+            linearLiftLeft.setPower(power);
+            linearLiftRight.setPower(-power);
         }
     }
 

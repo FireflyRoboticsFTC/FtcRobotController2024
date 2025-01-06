@@ -14,35 +14,42 @@ public class AutoNoIMUFar extends LinearOpMode {
         waitForStart();
 
         if (opModeIsActive()) {
-            //hardware.intakeAngle(0);
+            hardware.intakeAngle(0);
             telemetry.addData("Step", "Moving forward to Parking Close");
             telemetry.update();
-            //hardware.strafeFourWheel(0.3,true);
-            sleep(800);
-            hardware.strafeFourWheel(0,true);
-            hardware.moveFourWheel(0.35);
-            sleep(800);
-            //hardware.strafeFourWheel(0.3,false);
-            hardware.moveFourWheel(0);
-            sleep(800);
-            hardware.strafeFourWheel(0,true);
-            hardware.holdLift(true,0.5);
+            hardware.holdLift(true,1780, 0.5);
+            hardware.moveForwardWithHeading(0.6,13.5,0);
             sleep(500);
-            hardware.holdLift(false,0);
-            hardware.intakeSystem(-0.5);
+            //release counterweight for slides
+            //hardware.holdLift(false,0);
+            hardware.moveBackwardWithHeading(-0.2,-3,0);
+            hardware.moveBackwardWithHeading(-0.6,-9.5,0);
+            hardware.holdLift(false,0, -0.3);
             sleep(750);
-            hardware.holdLift(true,-0.5);
-            hardware.intakeAngle(0);
+            hardware.holdLift(false,0, 0);
+
+            hardware.rotateToAngle(-90,-0.5);
+            hardware.intakeSystem(1);
+            hardware.moveForwardWithHeading(0.6,16.5,0);
+            hardware.intakeAngle(.4);
+            sleep(2000);
             hardware.intakeSystem(0);
+            hardware.intakeAngle(0);
+            hardware.moveBackwardWithHeading(-0.6,-20.5,0);
+            hardware.rotateToAngle(0,0.5);
+
+            hardware.holdLift(true,1780, 0.5);
+            hardware.moveForwardWithHeading(0.6,13,0);
             sleep(500);
-            hardware.holdLift(false,0);
-            sleep(1000);
-            //hardware.strafeFourWheel(0.3,true);
-            sleep(800);
-            //hardware.strafeFourWheel(0,true);
-            hardware.moveFourWheel(-0.25);
-            sleep(1000);
-            hardware.moveFourWheel(0);
+            //release counterweight for slides
+            //hardware.holdLift(false,0);
+            hardware.moveBackwardWithHeading(-0.2,-3,0);
+            hardware.moveBackwardWithHeading(-0.6,-10,0);
+            hardware.holdLift(false,0, -0.3);
+            sleep(750);
+            hardware.holdLift(false,0, 0);
+
+
 
         }
     }

@@ -1,17 +1,23 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "Encoder Test", group = "Calibration")
-public class EncoderTest extends LinearOpMode {
+public class EncoderTest extends OpMode {
+
+    private HardwareHandler hardware;
 
     @Override
-    public void runOpMode() {
+    public void init() {
+        hardware = new HardwareHandler(hardwareMap, telemetry);
+        hardware.telemetryEncoderPosition();
+    }
 
-        HardwareHandler hardware = new HardwareHandler(hardwareMap, telemetry);
+    @Override
+    public void loop(){
+        hardware.telemetryEncoderPosition();
 
-        while (!isStopRequested()) {
-            hardware.telemetryEncoderPosition();
-        }
+
+        hardware.moveFourWheel(.4*gamepad1.left_stick_y);
     }
 }
