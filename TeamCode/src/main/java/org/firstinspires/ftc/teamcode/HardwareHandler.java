@@ -98,10 +98,10 @@ public class HardwareHandler {
         linearLiftLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         linearLiftRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        leftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        leftRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightRear.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        rightRear.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         climbOne.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         climbTwo.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         linearLiftRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
