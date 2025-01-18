@@ -396,7 +396,7 @@ public double distanceToTicks(double distanceInInches) {
     public void measureAngle(double direction) {
         double leftCurrPos = leftTapeMeasureAim.getPosition();
         double rightCurrPos = rightTapeMeasureAim.getPosition();
-        if ((leftCurrPos > 0.763 && direction < 0) || (rightCurrPos > 0 && direction > 0)) {
+        if ((leftCurrPos > 0.7 && direction < 0) || (rightCurrPos > 0 && direction > 0)) {
             leftTapeMeasureAim.setPosition(leftCurrPos + direction * 0.001);
             rightTapeMeasureAim.setPosition(rightCurrPos + direction * -0.001);
         }
@@ -413,7 +413,7 @@ public double distanceToTicks(double distanceInInches) {
     }
 
     public void intakeAngle(double angle) {
-            leftLiftAngle.setPosition(angle);
+            leftLiftAngle.setPosition(0.01+angle);
             rightLiftAngle.setPosition(1-angle);
     }
 

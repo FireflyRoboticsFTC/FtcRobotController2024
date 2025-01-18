@@ -8,6 +8,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.TranslationalVelConstraint;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.ftc.Actions;
@@ -26,9 +27,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 
 @Config
-@Autonomous(name = "rr test auto", group = "Autonomous")
-public class RRAuto extends LinearOpMode {
-
+@Autonomous(name = "one basket", group = "Autonomous")
+public class OneBasket extends LinearOpMode{
     public class Lift {
         private final DcMotor linearLiftLeft;
         private final DcMotor linearLiftRight;
@@ -55,8 +55,8 @@ public class RRAuto extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    linearLiftLeft.setPower(0.6);
-                    linearLiftRight.setPower(0.6);
+                    linearLiftLeft.setPower(0.7);
+                    linearLiftRight.setPower(0.7);
                     initialized = true;
                 }
 
@@ -64,34 +64,7 @@ public class RRAuto extends LinearOpMode {
                 double leftPos = linearLiftLeft.getCurrentPosition();
                 double rightPos = linearLiftRight.getCurrentPosition();
                 packet.put("liftPos", leftPos);
-                if (leftPos < 1450 && rightPos < 1450) {
-                    // true causes the action to rerun
-                    return true;
-                } else {
-                    // false stops action rerun
-                    linearLiftLeft.setPower(0);
-                    linearLiftRight.setPower(0);
-                    return false;
-                }
-            }
-        }
-
-        public class LiftUp2 implements Action {
-            private boolean initialized = false;
-
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                if (!initialized) {
-                    linearLiftLeft.setPower(0.4);
-                    linearLiftRight.setPower(0.4);
-                    initialized = true;
-                }
-
-                // checks lift's current position
-                double leftPos = linearLiftLeft.getCurrentPosition();
-                double rightPos = linearLiftRight.getCurrentPosition();
-                packet.put("liftPos", leftPos);
-                if (leftPos < 1630 && rightPos < 1630) {
+                if (leftPos < 1530 && rightPos < 1530) {
                     // true causes the action to rerun
                     return true;
                 } else {
@@ -119,7 +92,7 @@ public class RRAuto extends LinearOpMode {
                 double leftPos = linearLiftLeft.getCurrentPosition();
                 double rightPos = linearLiftRight.getCurrentPosition();
                 packet.put("liftPos", leftPos);
-                if (runtime.milliseconds() < 900) {
+                if (runtime.milliseconds() < 800) {
                     // true causes the action to rerun
                     return true;
                 } else {
@@ -135,10 +108,6 @@ public class RRAuto extends LinearOpMode {
             return new LiftUp();
         }
 
-        public Action liftUp2() {
-            return new LiftUp2();
-        }
-
         public Action liftDown() {
             return new LiftDown();
         }
@@ -149,12 +118,34 @@ public class RRAuto extends LinearOpMode {
         private final CRServo rightIntake;
         private final Servo leftLiftAngle;
         private final Servo rightLiftAngle;
+        private final Servo leftTapeMeasureAim;
+        private final Servo rightTapeMeasureAim;
 
         public Intake(HardwareMap hardwareMap) {
             leftIntake = hardwareMap.crservo.get("leftIntake");
             rightIntake = hardwareMap.crservo.get("rightIntake");
             leftLiftAngle = hardwareMap.servo.get("leftLiftAngle");
             rightLiftAngle = hardwareMap.servo.get("rightLiftAngle");
+            leftTapeMeasureAim = hardwareMap.servo.get("leftTapeMeasureAim");
+            rightTapeMeasureAim = hardwareMap.servo.get("rightTapeMeasureAim");
+        }
+
+        public class TapeMeasure implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                leftTapeMeasureAim.setPosition(.9728);
+                rightTapeMeasureAim.setPosition(0);
+                return false;
+            }
+        }
+
+        public class IntakeOut implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                leftIntake.setPower(1);
+                rightIntake.setPower(-1);
+                return false;
+            }
         }
 
         public class IntakeDown implements Action {
@@ -162,8 +153,8 @@ public class RRAuto extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket packet) {
                 leftIntake.setPower(-1);
                 rightIntake.setPower(1);
-                leftLiftAngle.setPosition(0.37);
-                rightLiftAngle.setPosition(1-.37);
+                leftLiftAngle.setPosition(0.01+0.315);
+                rightLiftAngle.setPosition(1-0.315);
                 return false;
             }
         }
@@ -179,6 +170,10 @@ public class RRAuto extends LinearOpMode {
             }
         }
 
+        public Action intakeOut() {
+            return new IntakeOut();
+        }
+
         public Action intakeDown() {
             return new IntakeDown();
         }
@@ -186,44 +181,69 @@ public class RRAuto extends LinearOpMode {
         public Action intakeUp() {
             return new IntakeUp();
         }
+
+        public Action tapeMeasure() {
+            return new TapeMeasure();
+        }
     }
 
     @Override
     public void runOpMode() {
         // instantiate your MecanumDrive at a particular pose.
-        Pose2d initialPose = new Pose2d(0, 65, Math.toRadians(-90));
+        Pose2d initialPose = new Pose2d(30, 65, Math.toRadians(0));
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         // make a Claw instance
         Intake intake = new Intake(hardwareMap);
         // make a Lift instance
         Lift lift = new Lift(hardwareMap);
+        double dropX = 50.8;
+        double dropY = 52.8;
 
-        Action toSubmersible = drive.actionBuilder(initialPose)
-                .lineToY(38, new TranslationalVelConstraint(17.0))
-                .waitSeconds(0.8)
-                .lineToY(45, new TranslationalVelConstraint(17.0))
+        Action toBasket = drive.actionBuilder(initialPose)
+                .strafeTo(new Vector2d(30, dropY))
+                .strafeTo(new Vector2d(dropX, dropY))
+                .turnTo(Math.toRadians(50))
                 .build();
 
-        Action backwards = drive.actionBuilder(new Pose2d(0, 45, Math.toRadians(-90)))
-                .lineToYSplineHeading(60.5, Math.toRadians(180))
+        /*Action deposit = drive.actionBuilder(new Pose2d(51, 53, Math.toRadians(50)))
+                .strafeTo(new Vector2d(55, 57))
                 .build();
 
-        Action toObservationZone = drive.actionBuilder(new Pose2d(0, 60.5, Math.toRadians(180)))
-                .lineToX(-36.5)
-                .lineToX(-39.5, new TranslationalVelConstraint(5.0))
+        Action back = drive.actionBuilder(new Pose2d(55, 57, Math.toRadians(50)))
+                .strafeTo(new Vector2d(51, 53))
+                .build();*/
+
+        Action toBlock1 = drive.actionBuilder(new Pose2d(dropX, dropY, Math.toRadians(50)))
+                .strafeToLinearHeading(new Vector2d(44.5, dropY), Math.toRadians(-90))
+                .strafeTo(new Vector2d(44.5, 47))
+                .strafeTo(new Vector2d(44.5, 42), new TranslationalVelConstraint(5.0))
                 .build();
 
-        Action toSubmersible2 = drive.actionBuilder(new Pose2d(-39.5, 60.5, Math.toRadians(180)))
-                .turnTo(-Math.PI / 2)
-                .setTangent(0.0)
-                .splineToConstantHeading(new Vector2d(-3, 40), -Math.PI / 2.0)
-                .waitSeconds(0.7)
-                .lineToY(47, new TranslationalVelConstraint(17.0))
+        Action toBasket2 = drive.actionBuilder(new Pose2d(44.5, 42, Math.toRadians(-90)))
+                .strafeToLinearHeading(new Vector2d(dropX, dropY), Math.toRadians(50))
                 .build();
 
-        Action toPark = drive.actionBuilder(new Pose2d(-3, 47, Math.toRadians(-90)))
-                .strafeTo(new Vector2d(-57, 64))
+        Action toBlock2 = drive.actionBuilder(new Pose2d(dropX, dropY, Math.toRadians(50)))
+                .strafeToLinearHeading(new Vector2d(54.5, dropY), Math.toRadians(-90))
+                .strafeTo(new Vector2d(54.5, 47))
+                .strafeTo(new Vector2d(54.5, 42), new TranslationalVelConstraint(5.0))
                 .build();
+
+        Action toBasket3 = drive.actionBuilder(new Pose2d(54.5, 42, Math.toRadians(-90)))
+                .strafeToLinearHeading(new Vector2d(dropX, dropY), Math.toRadians(50))
+                .build();
+
+        Action toPark = drive.actionBuilder(new Pose2d(dropX, dropY, Math.toRadians(50)))
+                .turnTo(0)
+                //.waitSeconds(15)
+                .strafeTo(new Vector2d(-61, 60))
+                .build();
+
+        Action sleep = new SleepAction(1);
+
+        Action sleep2 = new SleepAction(1);
+
+        Action sleep3 = new SleepAction(1);
 
         waitForStart();
 
@@ -231,23 +251,59 @@ public class RRAuto extends LinearOpMode {
 
         Actions.runBlocking(
                 new SequentialAction(
-                        new ParallelAction(
-                                intake.intakeUp(),
-                                toSubmersible,
-                                lift.liftUp()
+                        new ParallelAction( //preload
+                            intake.intakeUp(),
+                            intake.tapeMeasure(),
+                            toBasket
                         ),
-                        backwards,
+                        lift.liftUp(),
+                        intake.intakeOut(),
+                        sleep,
                         new ParallelAction(
+                                //lift.liftUp(),
+                                intake.intakeUp()
+                        ),
+                        //back,
+                        lift.liftDown(),
+                        new ParallelAction( //block 1
+                                toBlock1,
                                 lift.liftDown(),
-                                toObservationZone,
                                 intake.intakeDown()
                         ),
                         new ParallelAction(
-                                intake.intakeUp(),
-                                toSubmersible2,
-                                lift.liftUp2()
+                                toBasket2,
+                                intake.intakeUp()
+                        ),
+                        lift.liftUp(),
+                        //deposit,
+                        intake.intakeOut(),
+                        sleep2,
+                        new ParallelAction(
+                                //lift.liftUp(),
+                                intake.intakeUp()
+                        ),
+                        //back,
+                        lift.liftDown(),
+                        new ParallelAction( //block 2
+                                toBlock2,
+                                lift.liftDown(),
+                                intake.intakeDown()
                         ),
                         new ParallelAction(
+                                toBasket3,
+                                intake.intakeUp()
+                        ),
+                        lift.liftUp(),
+                        //deposit,
+                        intake.intakeOut(),
+                        sleep3,
+                        new ParallelAction(
+                                //lift.liftUp(),
+                                intake.intakeUp()
+                        ),
+                        //back,
+                        lift.liftDown(),
+                        new ParallelAction( //park
                                 toPark,
                                 lift.liftDown()
                         )

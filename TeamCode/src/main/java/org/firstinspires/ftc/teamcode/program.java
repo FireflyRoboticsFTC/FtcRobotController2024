@@ -4,8 +4,16 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="robotTeleOpTest", group="robotgroup")
 public class program extends OpMode {
+    public static class Params {
+        public double angle = 0.315;
+    }
+
+    public static Params PARAMS = new Params();
+
     private HardwareHandler hardwareHandler;
     private boolean gpd2bPrevState = false;
     private boolean aPrevState = false;
@@ -45,6 +53,7 @@ public class program extends OpMode {
         if (initial) {
             hardwareHandler.setMeasure(0);
             hardwareHandler.intakeAngle(0);
+            runtime.reset();
             initial = !(initial);
         }
 
@@ -64,13 +73,13 @@ public class program extends OpMode {
 
         if (slowCurr && !slowPrev) {
             if (!slowOn)
-                slowMode = 0.25;
+                slowMode = 0.6;
             else
                 slowMode = 1;
             slowOn = !(slowOn);
         }
 
-        double c = 0.5;
+        double c = 0.7;
         double f = gamepad1.left_stick_y;
         double r = gamepad1.right_stick_x * 0.5 / 0.65;
         double s = gamepad1.left_stick_x;
@@ -101,7 +110,7 @@ public class program extends OpMode {
             hardwareHandler.intakeAngle(0.2);
 
         if (gamepad1.a)
-            hardwareHandler.intakeAngle(0.39);
+            hardwareHandler.intakeAngle(PARAMS.angle);
 
         hardwareHandler.joystickLiftOne(gamepad2.left_stick_y*0.5);
         hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y*0.5);
@@ -110,9 +119,9 @@ public class program extends OpMode {
         hardwareHandler.measureAngle(gamepad2.right_stick_y);
         hardwareHandler.measurePosition();
 
-        if (gamepad2.y) {
-            hardwareHandler.setMeasure(0.6);
-        }
+        /*if (gamepad2.y) {
+            hardwareHandler.setMeasure(0.15);
+        }*/
 
         if (x && !xPrev) {
             if (!climbUp)
