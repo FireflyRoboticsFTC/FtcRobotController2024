@@ -63,6 +63,9 @@ public class HardwareHandler {
 
     private final Servo rightLiftAngle;
 
+    private final Servo leftClaw;
+    private final Servo rightClaw;
+
 
 
     public HardwareHandler(HardwareMap juyoungHardwareMap, Telemetry telemetry) {
@@ -85,6 +88,8 @@ public class HardwareHandler {
         rightTapeMeasure = juyoungHardwareMap.crservo.get("rightTapeMeasure");
         leftLiftAngle = juyoungHardwareMap.servo.get("leftLiftAngle");
         rightLiftAngle = juyoungHardwareMap.servo.get("rightLiftAngle");
+        leftClaw = juyoungHardwareMap.servo.get("leftClaw");
+        rightClaw = juyoungHardwareMap.servo.get("rightClaw");
 
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -329,7 +334,16 @@ public double distanceToTicks(double distanceInInches) {
         telemetry.update();
     }
 
+    public void setClaw(String pos) {
+        if (pos.equals("open")) {
+            leftClaw.setPosition(0.8289);
+            rightClaw.setPosition(0.175);
+        } else {
+            leftClaw.setPosition(0.99); //0.97
+            rightClaw.setPosition(0.0128); //0.0328
+        }
 
+    }
 
     boolean buttonPressed = false;
 
@@ -489,7 +503,6 @@ public double distanceToTicks(double distanceInInches) {
     private double servoAngle = 0.0;   // Current servo angle (degrees)
     private double angleStep = 5.0;    // Increment angle by 5 degrees (adjustable)
     private boolean prevToggleState = false; // Tracks the previous state of the toggle button
-
 
     // Method to toggle the servo angle through a range
     public void toggleServo(boolean toggleButton) {

@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="robotTeleOpTest", group="robotgroup")
 public class program extends OpMode {
     public static class Params {
-        public double angle = 0.315;
+        public double angle = 0.28;
     }
 
     public static Params PARAMS = new Params();
@@ -39,7 +39,10 @@ public class program extends OpMode {
     private boolean slowOn = false;
     private double slowMode = 1;
     private boolean initial = true;
+    private boolean clawPrev = false;
+    private boolean claw = false;
 
+    private ElapsedTime overallRuntime = new ElapsedTime();
     private ElapsedTime runtime = new ElapsedTime();
 
     @Override
@@ -53,22 +56,25 @@ public class program extends OpMode {
         if (initial) {
             hardwareHandler.setMeasure(0);
             hardwareHandler.intakeAngle(0);
+            hardwareHandler.setClaw("close");
+            overallRuntime.reset();
             runtime.reset();
             initial = !(initial);
         }
 
 
-        boolean y = gamepad1.dpad_up;
-        boolean x = gamepad1.dpad_down;
+        boolean y = gamepad2.dpad_up;
+        boolean x = gamepad2.dpad_down;
         boolean gpd2bCurrState = gamepad2.x;
         boolean aCurrState = gamepad2.a;
-        boolean axCurrState = gamepad2.dpad_down;
-        boolean bCurrState = gamepad2.dpad_up;
+        boolean axCurrState = gamepad1.dpad_down;
+        boolean bCurrState = gamepad1.dpad_up;
         boolean climbTwoUpCurr = gamepad2.dpad_left;
         boolean climbTwoDownCurr = gamepad2.dpad_right;
         boolean slowCurr = gamepad1.b;
         boolean tapeUpCurr = gamepad1.dpad_right;
         boolean tapeDownCurr = gamepad1.dpad_left;
+        boolean clawButton = gamepad2.y;
 
 
         if (slowCurr && !slowPrev) {
@@ -86,6 +92,11 @@ public class program extends OpMode {
         double speed = Math.max(Math.max(f * f, r * r), s * s) * c * slowMode;
         hardwareHandler.moveWithPower(f, r, s, speed);
 
+        if (overallRuntime.milliseconds() > 90*1000 && overallRuntime.milliseconds() < 91*1000) {
+            hardwareHandler.climbOn(-1);
+        } if (overallRuntime.milliseconds() > 95*1000 && overallRuntime.milliseconds() < 96*1000) {
+            hardwareHandler.climbOn(0);
+        }
 
         if (aCurrState && !aPrevState) {
             if (!intakeIn)
@@ -107,14 +118,26 @@ public class program extends OpMode {
             hardwareHandler.intakeAngle(0);
 
         if (gamepad1.x)
-            hardwareHandler.intakeAngle(0.2);
+            hardwareHandler.intakeAngle(0.0775);
 
         if (gamepad1.a)
             hardwareHandler.intakeAngle(PARAMS.angle);
 
-        hardwareHandler.joystickLiftOne(gamepad2.left_stick_y*0.5);
-        hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y*0.5);
+        if (clawButton && !clawPrev) {//open .175 right, 0.8289 left
+            if (!claw)
+                hardwareHandler.setClaw("open");
+            else
+                hardwareHandler.setClaw("close");
+            claw = !claw;
+        }
 
+        if (climbUp && (runtime.milliseconds() < 6000 && runtime.milliseconds() > 4900)) {
+            hardwareHandler.joystickLiftOne(-0.4);
+            hardwareHandler.joystickLiftTwo(-0.4);
+        } else {
+            hardwareHandler.joystickLiftOne(gamepad2.left_stick_y * 0.5);
+            hardwareHandler.joystickLiftTwo(gamepad2.left_stick_y * 0.5);
+        }
 
         hardwareHandler.measureAngle(gamepad2.right_stick_y);
         hardwareHandler.measurePosition();
@@ -124,11 +147,17 @@ public class program extends OpMode {
         }*/
 
         if (x && !xPrev) {
-            if (!climbUp)
+            if (!climbUp) {
                 hardwareHandler.climbOn(1);
-            else
+                runtime.reset();
+            } else
                 hardwareHandler.climbOn(0);
             climbUp = !(climbUp);
+        }
+
+        if (climbUp && runtime.milliseconds() > 5300) {
+            hardwareHandler.climbOn(0);
+            climbUp = !climbUp;
         }
 
         if (y && !yPrev) {
@@ -148,7 +177,7 @@ public class program extends OpMode {
             climbDown = !(climbDown);
         }
 
-        if(climbTwoUpCurr && !rightPrev) {
+        /*if(climbTwoUpCurr && !rightPrev) {
             if (!climbTwoUp)
                 hardwareHandler.climbTw(-1);
             else
@@ -162,7 +191,7 @@ public class program extends OpMode {
             else
                 hardwareHandler.climbTw(0);
             climbTwoDown = !(climbTwoDown);
-        }
+        }*/
 
         /*if(tapeUpCurr && !tapeUpPrev) {
             if (!tapeUp)
@@ -180,10 +209,10 @@ public class program extends OpMode {
             tapeDown = !(tapeDown);
         }*/
 
-        if(bCurrState && !bPrevState) {
+        /*if(bCurrState && !bPrevState) {
             if (!measureGoing) {
                 hardwareHandler.launchMeasure(-1);
-                hardwareHandler.climbTw(-0.6);
+                hardwareHandler.climbTw(-0.7);
             } else {
                 hardwareHandler.launchMeasure(0);
                 hardwareHandler.climbTw(0);
@@ -196,13 +225,13 @@ public class program extends OpMode {
         if(axCurrState && !axPrevState) {
             if (!measureOut) {
                 hardwareHandler.launchMeasure(1);
-                hardwareHandler.climbTw(0.6);
+                hardwareHandler.climbTw(0.7);
             } else {
                 hardwareHandler.launchMeasure(0);
                 hardwareHandler.climbTw(0);
             }
             measureOut = !(measureOut);
-        }
+        }*/
 
 
         //hardwareHandler.climbOn(-gamepad2.left_stick_y); //stage 1
@@ -278,5 +307,6 @@ public class program extends OpMode {
         slowPrev = slowCurr;
         tapeUpPrev = tapeUpCurr;
         tapeDownPrev = tapeDownCurr;
+        clawPrev = clawButton;
     }
 }
