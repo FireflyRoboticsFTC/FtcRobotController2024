@@ -66,7 +66,8 @@ public class HardwareHandler {
     private final Servo leftClaw;
     private final Servo rightClaw;
 
-
+    private int leftLiftPos = 0;
+    private int rightLiftPos = 0;
 
     public HardwareHandler(HardwareMap juyoungHardwareMap, Telemetry telemetry) {
 
@@ -93,6 +94,8 @@ public class HardwareHandler {
 
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftRear.setDirection(DcMotorSimple.Direction.REVERSE);
+        linearLiftRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        climbOne.setDirection(DcMotorSimple.Direction.REVERSE);
 
         leftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         leftRear.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -217,14 +220,14 @@ public class HardwareHandler {
     }
 
 
-public double distanceToTicks(double distanceInInches) {
-    double wheelDiameter = 4.0;
-    double wheelCircumference = wheelDiameter * Math.PI;
-    double countsPerRevolution = 1120;
-    double gearRatio = 1.0;
+    public double distanceToTicks(double distanceInInches) {
+        double wheelDiameter = 4.0;
+        double wheelCircumference = wheelDiameter * Math.PI;
+        double countsPerRevolution = 1120;
+        double gearRatio = 1.0;
 
-    return (distanceInInches / wheelCircumference) * countsPerRevolution * gearRatio;
-}
+        return (distanceInInches / wheelCircumference) * countsPerRevolution * gearRatio;
+    }
 
     public void climbOn(double power) {climbOne.setPower(power); }
 
@@ -339,63 +342,11 @@ public double distanceToTicks(double distanceInInches) {
             leftClaw.setPosition(0.8289);
             rightClaw.setPosition(0.175);
         } else {
-            leftClaw.setPosition(0.99); //0.97
-            rightClaw.setPosition(0.0128); //0.0328
+            leftClaw.setPosition(0.98); //0.99
+            rightClaw.setPosition(0.0228); //0.0128
         }
 
     }
-
-    boolean buttonPressed = false;
-
-    /*public void toggleSlide(boolean a, double power) {
-        // Check if the button is pressed
-        boolean isButtonPressed = a; // Change "a" to the desired button
-        double rightPowerModifer = 1;
-        if (power > 0)
-            rightPowerModifer = 1;
-        // Check if the button state has changed
-        if (isButtonPressed && !buttonPressed) {
-
-            climbOne.setPower(power*rightPowerModifer);
-            runtime.reset();
-
-        } else if (!isButtonPressed && buttonPressed) {
-
-            climbOne.setPower(0.0);
-
-        }
-
-        // Update the button state
-        buttonPressed = isButtonPressed;
-
-    }*/
-
-    /*public void toggleSlideTwo(boolean a, double power) {
-        // Check if the button is pressed
-        boolean isButtonPressed = a; // Change "a" to the desired button
-        double rightPowerModifer = 1;
-        if (power > 0)
-            rightPowerModifer = 1;
-        // Check if the button state has changed
-        if (isButtonPressed && !buttonPressed) {
-
-            climbTwo.setPower(power*rightPowerModifer);
-            runtime.reset();
-
-        } else if (!isButtonPressed && buttonPressed) {
-
-            climbTwo.setPower(0.0);
-
-        }
-
-        // Update the button state
-        buttonPressed = isButtonPressed;
-
-    }*/
-
-
-    boolean buttonPressedY = false;
-    ElapsedTime runtimeB = new ElapsedTime();
 
     public void intakeSystem(double a) {
         leftIntake.setPower(-a);
@@ -427,34 +378,41 @@ public double distanceToTicks(double distanceInInches) {
     }
 
     public void intakeAngle(double angle) {
-            leftLiftAngle.setPosition(0.01+angle);
-            rightLiftAngle.setPosition(1-angle);
+        leftLiftAngle.setPosition(0.01+angle);
+        rightLiftAngle.setPosition(1-angle);
     }
 
-    /*public void toggleLift(boolean y, double power) {
-        // Check if the button is pressed
-        boolean isButtonPressedY = y; // Change "a" to the desired button
-        double powerModifer = 1;
-        if (power > 0)
-            powerModifer = 1;
-        // Check if the button state has changed
-        if (isButtonPressedY && !buttonPressedY) {
+    public void setLiftPos(int pos) {
+        leftLiftPos = linearLiftLeft.getCurrentPosition() + pos;
+        rightLiftPos = linearLiftRight.getCurrentPosition() + pos;
+    }
 
-            linearLiftLeft.setPower(-power);
-            linearLiftRight.setPower(power);
-            runtimeB.reset();
+    public void joystickLift(double power) {
+        linearLiftLeft.setPower(power*0.80);
+        linearLiftRight.setPower(power*0.80);
+        leftLiftPos = linearLiftLeft.getCurrentPosition();
+        rightLiftPos = linearLiftRight.getCurrentPosition();
+    }
 
-        } else if (!isButtonPressedY && buttonPressedY) {
-
-            linearLiftRight.setPower(0);
+    public void updateLift() {
+        int leftDiff = leftLiftPos - linearLiftLeft.getCurrentPosition();
+        int rightDiff = rightLiftPos - linearLiftRight.getCurrentPosition();
+        if (leftDiff > 200 && rightDiff > 200) {
+            linearLiftLeft.setPower(0.8);
+            linearLiftRight.setPower(0.8);
+        } else if (leftDiff > 0 && rightDiff > 0) {
+            linearLiftLeft.setPower(0.75 * (leftDiff / 200.0) + 0.05);
+            linearLiftRight.setPower(0.75 * (leftDiff / 200.0) + 0.05);
+        } else {
             linearLiftLeft.setPower(0);
-
+            linearLiftRight.setPower(0);
         }
+    }
 
-        // Update the button state
-        buttonPressedY = isButtonPressedY;
-
-    }*/
+    public void slideTelemetry() {
+        telemetry.addData("left slide", leftLiftPos);
+        telemetry.addData("right slide", rightLiftPos);
+    }
 
     public void holdLift(boolean button, int pos, double power) {
         if (button) {
@@ -493,14 +451,7 @@ public double distanceToTicks(double distanceInInches) {
         }
     }
 
-    public void joystickLiftOne(double power) {
-        linearLiftLeft.setPower(-power);
-    }
-    public void joystickLiftTwo(double power) {
-        linearLiftRight.setPower(power);
-    }
-
-    private double servoAngle = 0.0;   // Current servo angle (degrees)
+    /*private double servoAngle = 0.0;   // Current servo angle (degrees)
     private double angleStep = 5.0;    // Increment angle by 5 degrees (adjustable)
     private boolean prevToggleState = false; // Tracks the previous state of the toggle button
 
@@ -522,9 +473,6 @@ public double distanceToTicks(double distanceInInches) {
 
         // Update the previous button state
         prevToggleState = toggleButton;
-    }
-
-
-
+    }*/
 
 }

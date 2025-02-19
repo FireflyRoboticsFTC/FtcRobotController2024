@@ -13,8 +13,8 @@ public class ServoTest extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialize the servo from your hardware map
-        leftLiftAngle = hardwareMap.servo.get("leftClaw");
-        rightLiftAngle = hardwareMap.servo.get("rightClaw");
+        leftLiftAngle = hardwareMap.servo.get("leftLiftAngle");
+        rightLiftAngle = hardwareMap.servo.get("rightLiftAngle");
         //testServo = hardwareMap.get(Servo.class, "test_servo");
 
         // Wait for the start button to be pressed
