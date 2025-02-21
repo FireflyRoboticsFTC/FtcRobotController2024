@@ -125,17 +125,21 @@ public class program extends OpMode {
         if (clipLift && !previousGamepad2.dpad_up) { //assumes slides are starting at bottom
             liftUp = !(liftUp);
             if (liftUp) {
-                hardwareHandler.intakeSystem(0);
                 hardwareHandler.setLiftPos(1200);
                 liftRuntime.reset();
-                intakeIn = false;
             } else
                 hardwareHandler.setLiftPos(-1200);
         }
 
-        if (liftRuntime.milliseconds() > 500 && liftUp) {
-            hardwareHandler.intakeAngle(0);
-            liftUp = false;
+        if (liftUp) {
+            if (liftRuntime.milliseconds() > 250) {
+                hardwareHandler.intakeSystem(0);
+                intakeIn = false;
+            }
+            if (liftRuntime.milliseconds() > 500) {
+                hardwareHandler.intakeAngle(0);
+                liftUp = false;
+            }
         }
 
         if (gamepad2.left_stick_y != 0) //if you move the joystick at all no more automatic

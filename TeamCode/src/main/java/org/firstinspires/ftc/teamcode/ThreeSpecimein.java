@@ -169,17 +169,11 @@ public class ThreeSpecimein extends LinearOpMode {
 
         public Action liftUp() { return new LiftUp(); }
 
-        public Action liftUp2() {
-            return new LiftUp2();
-        }
+        public Action liftUp2() { return new LiftUp2(); }
 
-        public Action liftUp3() {
-            return new LiftUp3();
-        }
+        public Action liftUp3() { return new LiftUp3(); }
 
-        public Action liftDown() {
-            return new LiftDown();
-        }
+        public Action liftDown() { return new LiftDown(); }
     }
 
     public class Intake {
@@ -279,25 +273,15 @@ public class ThreeSpecimein extends LinearOpMode {
             }
         }
 
-        public Action intakeDown() {
-            return new IntakeDown();
-        }
+        public Action intakeDown() { return new IntakeDown(); }
 
-        public Action intakeUp() {
-            return new IntakeUp();
-        }
+        public Action intakeUp() { return new IntakeUp(); }
 
-        public Action intakeOut() {
-            return new IntakeOut();
-        }
+        public Action intakeOut() { return new IntakeOut(); }
 
-        public Action tapeMeasure() {
-            return new TapeMeasure();
-        }
+        public Action tapeMeasure() { return new TapeMeasure(); }
 
-        public Action claw() {
-            return new Claw();
-        }
+        public Action claw() { return new Claw(); }
     }
 
     @Override
