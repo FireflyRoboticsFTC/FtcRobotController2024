@@ -12,6 +12,7 @@ public class program extends OpMode {
     private HardwareHandler hardwareHandler;
 
     private double slowModifier = 1;
+    private double rotationModifier = 0.5 / 0.65;
 
     private boolean intakeIn = false;
     private boolean intakeOut = false;
@@ -70,19 +71,23 @@ public class program extends OpMode {
 
         double c = 1;
         double f = gamepad1.left_stick_y;
-        double r = gamepad1.right_stick_x * 0.5 / 0.65;
+        double r = gamepad1.right_stick_x * rotationModifier;
         double s = gamepad1.left_stick_x;
         double speed = Math.max(Math.max(f * f, r * r), s * s) * c * slowModifier;
         hardwareHandler.moveWithPower(f, r, s, speed);
 
         if (slowMode && !previousGamepad1.b)
             slowOn = !(slowOn);
-        if (holdSlowMode)
+        if (holdSlowMode) {
             slowModifier = 0.4;
-        else if (slowOn)
+            rotationModifier = 1;
+        } else if (slowOn) {
             slowModifier = 0.4;
-        else
+            rotationModifier = 1;
+        } else {
             slowModifier = 1;
+            rotationModifier = 0.5 / 0.65;
+        }
 
         if (!holdSlowMode && previousGamepad1.left_trigger != 0 && slowOn)
             slowOn = false;
@@ -90,9 +95,9 @@ public class program extends OpMode {
         if (highArm)
             hardwareHandler.intakeAngle(0);
         if (midArm)
-            hardwareHandler.intakeAngle(0.17);
+            hardwareHandler.intakeAngle(0.175);
         if (lowArm)
-            hardwareHandler.intakeAngle(0.38);
+            hardwareHandler.intakeAngle(0.39);
 
         if (intakeSpinIn && !(previousGamepad1.left_bumper || previousGamepad2.dpad_left || previousGamepad2.dpad_down)) {
             intakeIn = !(intakeIn);
@@ -125,11 +130,11 @@ public class program extends OpMode {
         if (clipLift && !previousGamepad2.dpad_up) { //assumes slides are starting at bottom
             liftUp = !(liftUp);
             if (liftUp) {
-                hardwareHandler.setLiftPos(1280);
+                hardwareHandler.setLiftPos(1330);
                 hardwareHandler.intakeAngle(0);
                 liftRuntime.reset();
             } else
-                hardwareHandler.setLiftPos(-1280);
+                hardwareHandler.setLiftPos(-1330);
         }
 
         if (liftUp) {
@@ -164,7 +169,7 @@ public class program extends OpMode {
                 hardwareHandler.climbOn(0);
         }
 
-        if (runtime.seconds() > 90 && !autoClimb) {
+        if (runtime.seconds() > 100 && !autoClimb) {
             hardwareHandler.climbOn(1);
             gamepad2.rumble(500);
             climbRuntime.reset();

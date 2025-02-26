@@ -28,12 +28,15 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 @Autonomous(name = "rr auto 4 ground", group = "Autonomous")
 public class FourSpecimenGround extends LinearOpMode {
     public static double subY = 29;
-    public static double specimenY = 54+2;
-    public static double specimenX = -42;
+    public static double specimenY = 55;
+    public static double specimenX = -28;
     public static double slidePos = 1200;
-    public static double slideDelay = 2800;
-    public static double intakeVelocity = 12;
-    public static double specimenDelay = 0.2;
+    public static double slideDelay = 1200;
+    public static double intakeVelocity = 14;
+    public static double specimenDelay = 0.1;
+    public static double clipAngleOffset1 = Math.toRadians(-90); //to submersible
+    public static double clipAngleOffset2 = Math.toRadians(-94); //slow move
+    public static double intakeAngleOffset = Math.toRadians(180-10); //to specimen
 
     public class Lift {
         private final DcMotor linearLiftLeft;
@@ -99,11 +102,12 @@ public class FourSpecimenGround extends LinearOpMode {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    linearLiftLeft.setPower(0.4);
-                    linearLiftRight.setPower(0.4);
+                    linearLiftLeft.setPower(0.8);
+                    linearLiftRight.setPower(0.8);
                     leftTargetPos += linearLiftLeft.getCurrentPosition();
                     rightTargetPos += linearLiftRight.getCurrentPosition();
                     initialized = true;
+                    runtime.reset();
                 }
 
                 // checks lift's current position
@@ -192,7 +196,7 @@ public class FourSpecimenGround extends LinearOpMode {
                 double leftPos = linearLiftLeft.getCurrentPosition();
                 double rightPos = linearLiftRight.getCurrentPosition();
                 packet.put("liftPos", leftPos);
-                if (runtime.milliseconds() < 280) {
+                if (runtime.milliseconds() < 230) {
                     // true causes the action to rerun
                     return true;
                 } else {
@@ -261,8 +265,8 @@ public class FourSpecimenGround extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket packet) {
                 leftIntake.setPower(-1);
                 rightIntake.setPower(1);
-                leftLiftAngle.setPosition(0.01+0.17);
-                rightLiftAngle.setPosition(1-0.17);
+                leftLiftAngle.setPosition(0.01+0.175);
+                rightLiftAngle.setPosition(1-0.175);
                 leftClaw.setPosition(0.9); //0.97
                 rightClaw.setPosition(0.1); //0.0328
                 return false;
@@ -313,21 +317,20 @@ public class FourSpecimenGround extends LinearOpMode {
         Lift lift = new Lift(hardwareMap);
 
         Action toSubmersibleOne = drive.actionBuilder(initialPose)
-                .lineToY(subY+2.5)
-                //.waitSeconds(0.1)
+                .lineToY(subY+2)
+                .waitSeconds(0.1)
                 .build();
 
         Action slowMove = drive.actionBuilder(new Pose2d(-7.5, subY+2.5, Math.toRadians(-90)))
                 .lineToY(subY+1.5)
                 .build();
 
-        Action pushTwoBlock = drive.actionBuilder(new Pose2d(-7.5, subY+1.5, Math.toRadians(-90)))
+        Action pushTwoBlock = drive.actionBuilder(new Pose2d(-7.5, subY+2, Math.toRadians(-90)))
                 .setTangent(Math.PI / 2)
                 .splineToConstantHeading(new Vector2d(-34, 36), Math.PI)
                 .setTangent(-Math.PI / 2)
                 .splineToLinearHeading(new Pose2d(-46, 16, Math.PI), Math.PI)
-                .strafeTo(new Vector2d(-40, 55))
-                //.strafeTo(new Vector2d(-37, 34))
+                .strafeTo(new Vector2d(-40, 53))
                 .setTangent(-Math.PI / 2)
                 .splineToLinearHeading(new Pose2d(-56, 16.5, Math.PI / 2), Math.PI, new TranslationalVelConstraint(60))
                 .strafeTo(new Vector2d(-56, specimenY-5))
@@ -335,59 +338,54 @@ public class FourSpecimenGround extends LinearOpMode {
                 .waitSeconds(specimenDelay)
                 .build();
 
-        /*Action specimenTwo = drive.actionBuilder(new Pose2d(-56, specimenY-3, Math.toRadians(90)))
-                .strafeTo(new Vector2d(-56, specimenY+3))
-                .waitSeconds(specimenDelay)
-                .build();*/
-
         Action toSubmersibleTwo = drive.actionBuilder(new Pose2d(-56, specimenY+3, Math.toRadians(90)))
-                .setTangent(-Math.PI/3)
-                .splineToLinearHeading(new Pose2d(-5, subY-.5, Math.toRadians(-90)), -Math.PI/2, null, new ProfileAccelConstraint(-21.0,65.0))
+                .setTangent(-Math.PI/3) ///change if we have time
+                .splineToLinearHeading(new Pose2d(-4, subY+5, clipAngleOffset1), 0, null, new ProfileAccelConstraint(-21.0,65.0))
+                .strafeToLinearHeading(new Vector2d(-4, subY-1), clipAngleOffset2)
                 //.waitSeconds(0.1)
                 .build();
 
-        Action slowMove2 = drive.actionBuilder(new Pose2d(-5, subY-.5, Math.toRadians(-90)))
-                .lineToYLinearHeading(subY-2, Math.toRadians(-92))
+        Action slowMove2 = drive.actionBuilder(new Pose2d(-4, subY-1, clipAngleOffset1))
+                .lineToYLinearHeading(subY-2, clipAngleOffset2)
                 .build();
 
-        Action specimenThree = drive.actionBuilder(new Pose2d(-5, subY-2, Math.toRadians(-92)))
-                .strafeTo(new Vector2d(-5, subY+3))
-                .setTangent(Math.toRadians(80)) /// ADJUST IF NEEDED
-                .splineToLinearHeading(new Pose2d(-15, 59, Math.toRadians(180-8)), Math.toRadians(180-8))
-                .strafeTo(new Vector2d(-27, 63), new TranslationalVelConstraint(10))
-                //.waitSeconds(specimenDelay)
+        Action specimenThree = drive.actionBuilder(new Pose2d(-4, subY-2, clipAngleOffset2))
+                //.strafeTo(new Vector2d(-5, subY+3))
+                .setTangent(Math.toRadians(83))
+                .splineToLinearHeading(new Pose2d(specimenX+12, 60, intakeAngleOffset), intakeAngleOffset)
+                .strafeTo(new Vector2d(specimenX, 62), new TranslationalVelConstraint(intakeVelocity-2))
                 .build();
 
-        Action toSubmersibleThree = drive.actionBuilder(new Pose2d(-27, 63, Math.toRadians(180-8)))
-                .setTangent(-Math.PI/4)
-                .splineToLinearHeading(new Pose2d(-2.5, subY-.5, Math.toRadians(-90)), -Math.PI/2, null, new ProfileAccelConstraint(-20.0,60.0))
+        Action toSubmersibleThree = drive.actionBuilder(new Pose2d(specimenX, 63, intakeAngleOffset))
+                .setTangent(Math.toRadians(-20))
+                .splineToLinearHeading(new Pose2d(-0.5, subY, clipAngleOffset1), clipAngleOffset1, null, new ProfileAccelConstraint(-20.0,60.0))
                 //.waitSeconds(0.1)
                 .build();
 
-        Action slowMove3 = drive.actionBuilder(new Pose2d(-2.5, subY-.5, Math.toRadians(-90)))
-                .lineToYLinearHeading(subY-2, Math.toRadians(-92))
+        Action slowMove3 = drive.actionBuilder(new Pose2d(-0.5, subY, clipAngleOffset1))
+                .lineToYLinearHeading(subY-1, clipAngleOffset2)
                 .build();
 
-        Action specimenFour = drive.actionBuilder(new Pose2d(-2.5, subY-2, Math.toRadians(-92)))
-                .strafeTo(new Vector2d(-2.5, subY+3))
-                .setTangent(Math.toRadians(80)) /// ADJUST IF NEEDED
-                .splineToLinearHeading(new Pose2d(-15, 59, Math.toRadians(180-8)), Math.toRadians(180-8))
-                .strafeTo(new Vector2d(-27, 63), new TranslationalVelConstraint(10))
-                //.waitSeconds(specimenDelay)
+        Action specimenFour = drive.actionBuilder(new Pose2d(-0.5, subY-1, clipAngleOffset2))
+                //.strafeTo(new Vector2d(-2.5, subY+3))
+                .setTangent(Math.toRadians(83))
+                .splineToLinearHeading(new Pose2d(specimenX+12, 60, intakeAngleOffset), intakeAngleOffset)
+                .strafeTo(new Vector2d(specimenX, 62), new TranslationalVelConstraint(intakeVelocity-2))
                 .build();
 
-        Action toSubmersibleFour = drive.actionBuilder(new Pose2d(-27, 63, Math.toRadians(180-8)))
-                .setTangent(-Math.PI/4)
-                .splineToLinearHeading(new Pose2d(-9, subY-1.5, Math.toRadians(-90)), -Math.PI/2,  null, new ProfileAccelConstraint(-20.0,60.0))
+        Action toSubmersibleFour = drive.actionBuilder(new Pose2d(specimenX, 62, intakeAngleOffset))
+                .setTangent(Math.toRadians(-20))
+                .splineToLinearHeading(new Pose2d(-6, subY-0.5, clipAngleOffset1), clipAngleOffset1,  null, new ProfileAccelConstraint(-20.0,60.0))
                 //.waitSeconds(0.1)
                 .build();
 
-        Action slowMove4 = drive.actionBuilder(new Pose2d(-9, subY-1.5, Math.toRadians(-90)))
-                .lineToYLinearHeading(subY-2.5, Math.toRadians(-92))
+        Action slowMove4 = drive.actionBuilder(new Pose2d(-6, subY-0.5, clipAngleOffset1))
+                .lineToYLinearHeading(subY-1.5, clipAngleOffset2)
                 .build();
 
-        Action toPark = drive.actionBuilder(new Pose2d(-9, subY-2.5, Math.toRadians(-92)))
-                .strafeTo(new Vector2d(-40, 61.375))
+        Action toPark = drive.actionBuilder(new Pose2d(-6, subY-1.5, clipAngleOffset2))
+                .setTangent(Math.toRadians(83))
+                .splineToConstantHeading(new Vector2d(-40, 61.375), intakeAngleOffset)
                 .build();
 
         intake.servoStart();
@@ -403,11 +401,11 @@ public class FourSpecimenGround extends LinearOpMode {
                                 toSubmersibleOne,
                                 lift.liftUpInitial()
                         ),
-                        //lift.liftDown(),
-                        new ParallelAction(
+                        lift.liftDown(),
+                        /*new ParallelAction(
                                 slowMove,
                                 lift.liftDown()
-                        ),
+                        ),*/
                         //two
                         new ParallelAction(
                                 lift.liftDown(),
@@ -437,7 +435,7 @@ public class FourSpecimenGround extends LinearOpMode {
                         new ParallelAction(
                                 slowMove2,
                                 new SequentialAction(
-                                        sleep(0.3),
+                                        sleep(0.25),
                                         lift.liftDown()
                                 )
                         ),
@@ -456,7 +454,7 @@ public class FourSpecimenGround extends LinearOpMode {
                                 intake.intakeUp(),
                                 toSubmersibleThree,
                                 new SequentialAction(
-                                        sleep(1.0),
+                                        sleep(0.5),
                                         lift.liftUp()
                                 )
                         ),
@@ -464,7 +462,7 @@ public class FourSpecimenGround extends LinearOpMode {
                         new ParallelAction(
                                 slowMove3,
                                 new SequentialAction(
-                                        sleep(0.3),
+                                        sleep(0.25),
                                         lift.liftDown()
                                 )
                         ),
@@ -482,16 +480,13 @@ public class FourSpecimenGround extends LinearOpMode {
                         new ParallelAction(
                                 intake.intakeUp(),
                                 toSubmersibleFour,
-                                new SequentialAction(
-                                        sleep(0.25),
-                                        lift.liftUp()
-                                )
+                                lift.liftUp()
                         ),
                         //lift.liftDown(),
                         new ParallelAction(
                                 slowMove4,
                                 new SequentialAction(
-                                        sleep(0.3),
+                                        sleep(0.25),
                                         lift.liftDown()
                                 )
                         ),
