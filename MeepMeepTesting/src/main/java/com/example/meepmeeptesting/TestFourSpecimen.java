@@ -24,10 +24,8 @@ public class TestFourSpecimen {
 
         //630 ms to move up alone
 
-        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-2, 32.625, -Math.PI/2))
-                .setTangent(Math.PI/2)
-                .splineToLinearHeading(new Pose2d(-44, 50, Math.PI/2), 3*Math.PI/4)
-                .strafeTo(new Vector2d(-44, 56))
+        myBot.runAction(myBot.getDrive().actionBuilder(initialPose)
+                .lineToYLinearHeading(0, Math.toRadians(-92))
                 .build());
 
 

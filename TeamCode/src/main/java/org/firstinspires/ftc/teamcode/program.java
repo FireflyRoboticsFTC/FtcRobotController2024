@@ -59,8 +59,8 @@ public class program extends OpMode {
         boolean slowMode = gamepad1.b;
         boolean holdSlowMode = gamepad1.left_trigger != 0;
         boolean highArm = gamepad1.y || gamepad2.y;
-        boolean midArm = gamepad1.x || gamepad2.x || gamepad2.dpad_down;
-        boolean lowArm = gamepad1.a || gamepad2.a;
+        boolean midArm = gamepad1.x || gamepad2.x || gamepad2.b;
+        boolean lowArm = gamepad1.a || gamepad2.a || gamepad2.dpad_down;
         boolean claw = gamepad1.right_bumper;
         boolean intakeSpinIn = gamepad1.left_bumper || gamepad2.dpad_left || gamepad2.dpad_down;
         boolean intakeSpinOut = gamepad2.dpad_right;
@@ -70,7 +70,7 @@ public class program extends OpMode {
 
         double c = 1;
         double f = gamepad1.left_stick_y;
-        double r = gamepad1.right_stick_x /* 0.5 / 0.65*/;
+        double r = gamepad1.right_stick_x * 0.5 / 0.65;
         double s = gamepad1.left_stick_x;
         double speed = Math.max(Math.max(f * f, r * r), s * s) * c * slowModifier;
         hardwareHandler.moveWithPower(f, r, s, speed);
@@ -78,7 +78,7 @@ public class program extends OpMode {
         if (slowMode && !previousGamepad1.b)
             slowOn = !(slowOn);
         if (holdSlowMode)
-            slowModifier = 0.6;
+            slowModifier = 0.4;
         else if (slowOn)
             slowModifier = 0.4;
         else
@@ -90,7 +90,7 @@ public class program extends OpMode {
         if (highArm)
             hardwareHandler.intakeAngle(0);
         if (midArm)
-            hardwareHandler.intakeAngle(0.185);
+            hardwareHandler.intakeAngle(0.17);
         if (lowArm)
             hardwareHandler.intakeAngle(0.38);
 
@@ -125,21 +125,23 @@ public class program extends OpMode {
         if (clipLift && !previousGamepad2.dpad_up) { //assumes slides are starting at bottom
             liftUp = !(liftUp);
             if (liftUp) {
-                hardwareHandler.setLiftPos(1200);
+                hardwareHandler.setLiftPos(1280);
+                hardwareHandler.intakeAngle(0);
                 liftRuntime.reset();
             } else
-                hardwareHandler.setLiftPos(-1200);
+                hardwareHandler.setLiftPos(-1280);
         }
 
         if (liftUp) {
             if (liftRuntime.milliseconds() > 250) {
                 hardwareHandler.intakeSystem(0);
                 intakeIn = false;
-            }
-            if (liftRuntime.milliseconds() > 500) {
-                hardwareHandler.intakeAngle(0);
                 liftUp = false;
             }
+            /*if (liftRuntime.milliseconds() > 500) {
+                hardwareHandler.intakeAngle(0);
+                liftUp = false;
+            }*/
         }
 
         if (gamepad2.left_stick_y != 0) //if you move the joystick at all no more automatic
