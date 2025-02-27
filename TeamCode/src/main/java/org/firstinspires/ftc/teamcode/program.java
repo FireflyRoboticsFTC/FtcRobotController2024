@@ -80,10 +80,10 @@ public class program extends OpMode {
             slowOn = !(slowOn);
         if (holdSlowMode) {
             slowModifier = 0.4;
-            rotationModifier = 1;
+            rotationModifier = 0.85;
         } else if (slowOn) {
             slowModifier = 0.4;
-            rotationModifier = 1;
+            rotationModifier = 0.85;
         } else {
             slowModifier = 1;
             rotationModifier = 0.5 / 0.65;
@@ -97,7 +97,7 @@ public class program extends OpMode {
         if (midArm)
             hardwareHandler.intakeAngle(0.175);
         if (lowArm)
-            hardwareHandler.intakeAngle(0.39);
+            hardwareHandler.intakeAngle(0.395);
 
         if (intakeSpinIn && !(previousGamepad1.left_bumper || previousGamepad2.dpad_left || previousGamepad2.dpad_down)) {
             intakeIn = !(intakeIn);

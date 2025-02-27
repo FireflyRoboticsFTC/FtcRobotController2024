@@ -10,6 +10,17 @@ import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
 public class TestFourSpecimen {
+    public static double subY = 29;
+    public static double specimenY = 55;
+    public static double specimenX = -27;
+    public static double slidePos = 1200;
+    public static double slideDelay = 1200;
+    public static double intakeVelocity = 14;
+    public static double specimenDelay = 0.1;
+    public static double clipAngleOffset1 = Math.toRadians(-90); //to submersible
+    public static double clipAngleOffset2 = Math.toRadians(-94); //slow move
+    public static double intakeAngleOffset = Math.toRadians(180-10); //to specimen
+
     public static void main(String[] args) {
         MeepMeep meepMeep = new MeepMeep(700);
 
@@ -22,10 +33,25 @@ public class TestFourSpecimen {
 
         Pose2d initialPose = new Pose2d(-7.5, 61.375, Math.toRadians(-90));
 
-        //630 ms to move up alone
+        //6.12
+        /*myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-7.5, subY+2, Math.toRadians(-90)))
+                .setTangent(Math.PI / 2)
+                .splineToConstantHeading(new Vector2d(-34, 36), Math.PI)
+                .setTangent(-Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(-46, 16, Math.PI), Math.PI)
+                .strafeTo(new Vector2d(-41, 53))
+                .setTangent(-Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(-56, 16.5, Math.PI / 2), Math.PI, new TranslationalVelConstraint(60))
+                .build());*/
 
-        myBot.runAction(myBot.getDrive().actionBuilder(initialPose)
-                .lineToYLinearHeading(0, Math.toRadians(-92))
+        myBot.runAction(myBot.getDrive().actionBuilder(new Pose2d(-7.5, subY+2, Math.toRadians(-90)))
+                .setTangent(Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(-36, 36, Math.PI), Math.PI)
+                .setTangent(-Math.PI / 2)
+                .splineToLinearHeading(new Pose2d(-46, 16, Math.PI / 2), Math.PI)
+                .strafeTo(new Vector2d(-46, 53))
+                .setTangent(-Math.PI / 2)
+                .splineToConstantHeading(new Vector2d(-56, 16.5), Math.PI, new TranslationalVelConstraint(60))
                 .build());
 
 
