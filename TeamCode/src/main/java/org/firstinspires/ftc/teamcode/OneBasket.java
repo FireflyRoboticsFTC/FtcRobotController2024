@@ -29,6 +29,9 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 @Config
 @Autonomous(name = "one basket", group = "Autonomous")
 public class OneBasket extends LinearOpMode{
+    public static double dropX = 50.8-0.6; //you can change these dynamically in ftc dashboard, change the number then initalize
+    public static double dropY = 52.8-0.6; //website http://192.168.43.1:8080/dash
+
     public class Lift {
         private final DcMotor linearLiftLeft;
         private final DcMotor linearLiftRight;
@@ -57,26 +60,34 @@ public class OneBasket extends LinearOpMode{
 
         public class LiftUp implements Action {
             private boolean initialized = false;
+            private double leftTargetPos = 1000; // change these two numbers if you want slides to go higher
+            private double rightTargetPos = 1000;
+            private ElapsedTime runtime = new ElapsedTime();
 
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    linearLiftLeft.setPower(0.7);
-                    linearLiftRight.setPower(0.7);
+                    leftTargetPos += linearLiftLeft.getCurrentPosition();
+                    rightTargetPos += linearLiftRight.getCurrentPosition();
                     initialized = true;
+                    runtime.reset();
                 }
 
                 // checks lift's current position
-                double leftPos = linearLiftLeft.getCurrentPosition();
-                double rightPos = linearLiftRight.getCurrentPosition();
-                packet.put("liftPos", leftPos);
-                if (leftPos < 1590 && rightPos < 1590) {
-                    // true causes the action to rerun
+                double leftDiff = leftTargetPos - linearLiftLeft.getCurrentPosition();
+                double rightDiff = rightTargetPos - linearLiftRight.getCurrentPosition();
+                packet.put("liftDiff", leftDiff);
+                if (leftDiff > 200 && rightDiff > 200) {
+                    linearLiftLeft.setPower(0.8);
+                    linearLiftRight.setPower(0.8);
+                    return true;
+                } else if (leftDiff > 0 && rightDiff > 0) {
+                    linearLiftLeft.setPower(0.45 * (leftDiff / 200.0) + 0.35);
+                    linearLiftRight.setPower(0.45 * (leftDiff / 200.0) + 0.35);
                     return true;
                 } else {
-                    // false stops action rerun
-                    linearLiftLeft.setPower(0);
-                    linearLiftRight.setPower(0);
+                    linearLiftLeft.setPower(0.05);  //dont mess with this it keeps the slides from falling
+                    linearLiftRight.setPower(0.05);
                     return false;
                 }
             }
@@ -89,8 +100,8 @@ public class OneBasket extends LinearOpMode{
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    linearLiftLeft.setPower(-0.4);
-                    linearLiftRight.setPower(-0.4);
+                    linearLiftLeft.setPower(-1);
+                    linearLiftRight.setPower(-1);
                     initialized = true;
                     runtime.reset();
                 }
@@ -98,7 +109,7 @@ public class OneBasket extends LinearOpMode{
                 double leftPos = linearLiftLeft.getCurrentPosition();
                 double rightPos = linearLiftRight.getCurrentPosition();
                 packet.put("liftPos", leftPos);
-                if (runtime.milliseconds() < 800) {
+                if (runtime.milliseconds() < 500) { //change this if slides dont go down enough
                     // true causes the action to rerun
                     return true;
                 } else {
@@ -167,19 +178,12 @@ public class OneBasket extends LinearOpMode{
         }
 
         public void servoStart() {
-            leftLiftAngle.setPosition(0);
+            leftLiftAngle.setPosition(0.01);
             rightLiftAngle.setPosition(1);
             leftClaw.setPosition(0.99);
             rightClaw.setPosition(0.0128);
-        }
-
-        public class TapeMeasure implements Action {
-            @Override
-            public boolean run(@NonNull TelemetryPacket packet) {
-                leftTapeMeasureAim.setPosition(.9728);
-                rightTapeMeasureAim.setPosition(0);
-                return false;
-            }
+            leftTapeMeasureAim.setPosition(.9728-0.05);
+            rightTapeMeasureAim.setPosition(0.05);
         }
 
         public class IntakeOut implements Action {
@@ -196,10 +200,10 @@ public class OneBasket extends LinearOpMode{
             public boolean run(@NonNull TelemetryPacket packet) {
                 leftIntake.setPower(-1);
                 rightIntake.setPower(1);
-                leftLiftAngle.setPosition(0.01+0.27);
-                rightLiftAngle.setPosition(1-0.27);
-                leftClaw.setPosition(0.98);
-                rightClaw.setPosition(0.0228);
+                leftLiftAngle.setPosition(0.01+0.39);
+                rightLiftAngle.setPosition(1-0.39);
+                leftClaw.setPosition(0.9); //0.97 numbers if you decide to keep claw closed
+                rightClaw.setPosition(0.1); //0.0328
                 return false;
             }
         }
@@ -247,14 +251,12 @@ public class OneBasket extends LinearOpMode{
             return new IntakeUp();
         }
 
-        public Action tapeMeasure() {
-            return new TapeMeasure();
-        }
-
         public Action clawClose() { return new ClawClose(); }
 
         public Action clawOpen() { return new ClawOpen(); }
     }
+
+    public Action sleep(double dt) { return new SleepAction(dt); }
 
     @Override
     public void runOpMode() {
@@ -265,10 +267,8 @@ public class OneBasket extends LinearOpMode{
         Intake intake = new Intake(hardwareMap);
         // make a Lift instance
         Lift lift = new Lift(hardwareMap);
-        double dropX = 50.8-0.6;
-        double dropY = 52.8-0.6;
 
-        Action toBasket = drive.actionBuilder(initialPose)
+        Action toBasket = drive.actionBuilder(initialPose) // the strafe and turn could be combined, idk if i would suggest using a spline
                 .strafeTo(new Vector2d(30, dropY+0.3))
                 .strafeTo(new Vector2d(dropX+0.3, dropY+0.3))
                 .turnTo(Math.toRadians(50))
@@ -285,7 +285,7 @@ public class OneBasket extends LinearOpMode{
         Action toBlock1 = drive.actionBuilder(new Pose2d(dropX+0.3, dropY+0.3, Math.toRadians(45)))
                 .strafeToLinearHeading(new Vector2d(44.5, dropY+0.3), Math.toRadians(-90))
                 .strafeTo(new Vector2d(44.5, 49))
-                .strafeTo(new Vector2d(44.5, 42), new TranslationalVelConstraint(5.0))
+                .strafeTo(new Vector2d(44.5, 42), new TranslationalVelConstraint(5.0)) //new TranslationalVelConstraint(5.0) makes it have max velocity of 5
                 .build();
 
         Action toBasket2 = drive.actionBuilder(new Pose2d(44.5, 42, Math.toRadians(-90)))
@@ -304,11 +304,10 @@ public class OneBasket extends LinearOpMode{
                 .strafeToLinearHeading(new Vector2d(dropX-0.3, dropY-0.3), Math.toRadians(45))
                 .build();
 
-        //this is where i would put code for block 4 if uh i had code for grabbing block 4
+        //the two block 3 movements can definitely be combined
         Action toBlock3one = drive.actionBuilder(new Pose2d(dropX-0.3, dropY-0.3, Math.toRadians(45)))
                 .strafeToLinearHeading(new Vector2d(42, 25), Math.toRadians(0))
                 .build();
-
         Action toBlock3two = drive.actionBuilder(new Pose2d(42, 28, Math.toRadians(0)))
                 .strafeTo(new Vector2d(47, 25))
                 .build();
@@ -317,14 +316,15 @@ public class OneBasket extends LinearOpMode{
                 .strafeToLinearHeading(new Vector2d(dropX, dropY), Math.toRadians(45))
                 .build();
 
+        //the two deposit actions can be combined now that the slides dont fall by themselves
         Action deposit4one = drive.actionBuilder(new Pose2d(dropX, dropY, Math.toRadians(45)))
                 .strafeTo(new Vector2d(dropX+1.5, dropY+1.5))
                 .build();
-
         Action deposit4two = drive.actionBuilder(new Pose2d(dropX+1.5, dropY+1.5, Math.toRadians(45)))
                 .strafeTo(new Vector2d(dropX, dropY))
                 .build();
 
+        //change this completely
         Action toPark = drive.actionBuilder(new Pose2d(dropX, dropY, Math.toRadians(45)))
                 .turnTo(0)
                 //.waitSeconds(15)
@@ -332,9 +332,9 @@ public class OneBasket extends LinearOpMode{
                 .strafeTo(new Vector2d(10, 12), new TranslationalVelConstraint(20.0))
                 .build();
 
-        Action sleep = new SleepAction(0.4);
+        Action sleep = new SleepAction(0.4); //you can replace these with the sleep() function
 
-        Action sleep2 = new SleepAction(0.4);
+        Action sleep2 = new SleepAction(0.4); //it looks like this cuz you cant reuse actions, you have to make new ones
 
         Action sleep3 = new SleepAction(0.4);
 
@@ -350,12 +350,13 @@ public class OneBasket extends LinearOpMode{
 
         Actions.runBlocking(
                 new SequentialAction(
-                        new ParallelAction( //preload
-                            intake.intakeUp(),
-                            intake.tapeMeasure(),
-                            toBasket
+                        new ParallelAction(
+                                toBasket,
+                                new SequentialAction(
+                                        sleep(1.0), //when using sleep always add your decimals so it doesnt default to the other sleep
+                                        lift.liftUp()
+                                )
                         ),
-                        lift.liftUp(),
                         intake.intakeOut(),
                         sleep,
                         new ParallelAction(
@@ -367,13 +368,14 @@ public class OneBasket extends LinearOpMode{
                         new ParallelAction( //block 1
                                 toBlock1,
                                 lift.liftDown(),
-                                intake.intakeDown()
+                                intake.intakeDown() // you could add a sequential sleep here if it crashes into walls
                         ),
+                        // add a claw close + sleep here and in spots like it, check fourspecimenground for examples
                         new ParallelAction(
                                 toBasket2,
                                 intake.intakeUp()
                         ),
-                        lift.liftUp(),
+                        lift.liftUp(), //slides can be parallel action with moving, like the first to basket
                         //deposit,
                         intake.intakeOut(),
                         sleep2,

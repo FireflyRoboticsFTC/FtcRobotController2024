@@ -29,7 +29,7 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 public class FourSpecimenGround extends LinearOpMode {
     public static double subY = 29;
     public static double specimenY = 55;
-    public static double specimenX = -26;
+    public static double specimenX = -27;
     public static double slidePos = 1200;
     public static double slideDelay = 1200;
     public static double intakeVelocity = 12;
