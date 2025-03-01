@@ -60,11 +60,11 @@ public class program extends OpMode {
         boolean slowMode = gamepad1.b;
         boolean holdSlowMode = gamepad1.left_trigger != 0;
         boolean highArm = gamepad1.y || gamepad2.y;
-        boolean midArm = gamepad1.x || gamepad2.x || gamepad2.b;
+        boolean midArm = gamepad1.x || gamepad2.x;
         boolean lowArm = gamepad1.a || gamepad2.a || gamepad2.dpad_down;
         boolean claw = gamepad1.right_bumper;
-        boolean intakeSpinIn = gamepad1.left_bumper || gamepad2.dpad_left || gamepad2.dpad_down;
-        boolean intakeSpinOut = gamepad2.dpad_right;
+        boolean intakeSpinIn = gamepad1.left_bumper || gamepad1.dpad_right || gamepad2.dpad_down;
+        boolean intakeSpinOut = gamepad1.dpad_left;
         boolean clipLift = gamepad2.dpad_up;
         boolean climbOneUp = gamepad1.dpad_up;
         boolean climbOneDown = gamepad1.dpad_down;
@@ -99,7 +99,7 @@ public class program extends OpMode {
         if (lowArm)
             hardwareHandler.intakeAngle(0.395);
 
-        if (intakeSpinIn && !(previousGamepad1.left_bumper || previousGamepad2.dpad_left || previousGamepad2.dpad_down)) {
+        if (intakeSpinIn && !(previousGamepad1.left_bumper || previousGamepad1.dpad_right || previousGamepad2.dpad_down)) {
             intakeIn = !(intakeIn);
             intakeOut = false;
             if (intakeIn)
@@ -109,7 +109,7 @@ public class program extends OpMode {
             }
         }
 
-        if (intakeSpinOut && !previousGamepad2.dpad_right) {
+        if (intakeSpinOut && !previousGamepad1.dpad_left) {
             intakeOut = !(intakeOut);
             intakeIn = false;
             if (intakeOut)
