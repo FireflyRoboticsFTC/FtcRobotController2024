@@ -30,8 +30,8 @@ import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
 @Config
 @Autonomous(name = "one basket", group = "Autonomous")
 public class OneBasket extends LinearOpMode{
-    public static double dropX = 50.8-0.6+1.5; //you can change these dynamically in ftc dashboard, change the number then initalize
-    public static double dropY = 52.8-0.6+1.5; //website http://192.168.43.1:8080/dash
+    public static double dropX = 50.8+2.5; //you can change these dynamically in ftc dashboard, change the number then initalize
+    public static double dropY = 52.8+2.5; //website http://192.168.43.1:8080/dash
 
     public class Lift {
         private final DcMotor linearLiftLeft;
@@ -61,8 +61,8 @@ public class OneBasket extends LinearOpMode{
 
         public class LiftUp implements Action {
             private boolean initialized = false;
-            private double leftTargetPos = 1000; // change these two numbers if you want slides to go higher
-            private double rightTargetPos = 1000;
+            private double leftTargetPos = 1150; // change these two numbers if you want slides to go higher
+            private double rightTargetPos = 1150;
             private ElapsedTime runtime = new ElapsedTime();
 
             @Override
@@ -101,8 +101,6 @@ public class OneBasket extends LinearOpMode{
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
                 if (!initialized) {
-                    linearLiftLeft.setPower(-1);
-                    linearLiftRight.setPower(-1);
                     initialized = true;
                     runtime.reset();
                 }
@@ -110,9 +108,9 @@ public class OneBasket extends LinearOpMode{
                 double leftPos = linearLiftLeft.getCurrentPosition();
                 double rightPos = linearLiftRight.getCurrentPosition();
                 packet.put("liftPos", leftPos);
-                if (runtime.milliseconds() < 400) {
+                if (runtime.milliseconds() < 200) {
                     return true;
-                } else if (runtime.milliseconds() < 1000) { //change this if slides dont go down enough
+                } else if (runtime.milliseconds() < 700) { //change this if slides dont go down enough
                     linearLiftLeft.setPower(-1);
                     linearLiftRight.setPower(-1);
                     return true;
@@ -332,8 +330,8 @@ public class OneBasket extends LinearOpMode{
         Action toPark = drive.actionBuilder(new Pose2d(dropX+1.5, dropY+1.5, Math.toRadians(45)))
                 //.turnTo(Math.PI)
                 //.waitSeconds(15)
-                .strafeToLinearHeading(new Vector2d(26.5, 12), Math.PI, new TranslationalVelConstraint(20.0))
-                .strafeTo(new Vector2d(10, 12), new TranslationalVelConstraint(20.0))
+                .strafeToLinearHeading(new Vector2d(26.5, 6), Math.PI, new TranslationalVelConstraint(30.0))
+                .strafeTo(new Vector2d(10, 6), new TranslationalVelConstraint(30.0))
                 .build();
 
         intake.servoStart();
@@ -358,7 +356,7 @@ public class OneBasket extends LinearOpMode{
                                 toBlock1,
                                 lift.liftDown(),
                                 new SequentialAction(
-                                        sleep(1.2),
+                                        sleep(0.75),
                                         intake.intakeDown()
                                 )
                         ),
@@ -368,7 +366,7 @@ public class OneBasket extends LinearOpMode{
                                 toBasket2,
                                 intake.intakeUp(),
                                 new SequentialAction(
-                                        sleep(0.7),
+                                        sleep(0.4),
                                         lift.liftUp()
                                 )
                         ),
@@ -380,7 +378,7 @@ public class OneBasket extends LinearOpMode{
                                 toBlock2,
                                 lift.liftDown(),
                                 new SequentialAction(
-                                        sleep(1.5),
+                                        sleep(0.75),
                                         intake.intakeDown()
                                 )
                         ),
@@ -403,8 +401,9 @@ public class OneBasket extends LinearOpMode{
                                 toBlock3,
                                 lift.liftDown(),
                                 new SequentialAction(
-                                        sleep(1.5),
-                                        intake.intakeDown()
+                                        sleep(1.2),
+                                        intake.intakeDown(),
+                                        intake.clawOpen()
                                 )
                         ),
                         intake.clawClose(),
@@ -413,7 +412,7 @@ public class OneBasket extends LinearOpMode{
                                 toBasket4,
                                 intake.intakeUp(),
                                 new SequentialAction(
-                                        sleep(1.3),
+                                        sleep(0.7),
                                         lift.liftUp()
                                 )
                         ),
